@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::modifier::ModifierChain;
+use crate::modifier::Modifiers;
 use crate::state::StateSlot;
 
 /// Unique identifier for composition nodes
@@ -81,7 +81,7 @@ pub struct CompositionNode {
     /// State slots for this composition
     pub state_slots: Vec<StateSlot>,
     /// Applied modifiers
-    pub modifiers: ModifierChain,
+    pub modifiers: Modifiers,
     /// Whether this node needs recomposition
     pub dirty: bool,
 }
@@ -96,7 +96,7 @@ impl CompositionNode {
             children: Vec::new(),
             entity: None,
             state_slots: Vec::new(),
-            modifiers: ModifierChain::default(),
+            modifiers: Modifiers::default(),
             dirty: true,
         }
     }
@@ -106,7 +106,7 @@ impl CompositionNode {
         self
     }
 
-    pub fn with_modifiers(mut self, modifiers: ModifierChain) -> Self {
+    pub fn with_modifiers(mut self, modifiers: Modifiers) -> Self {
         self.modifiers = modifiers;
         self
     }

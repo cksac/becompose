@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use crate::components::*;
 use crate::layout::*;
-use crate::modifier::ModifierChain;
+use crate::modifier::Modifiers;
 
 /// Extension trait for Commands to spawn BECOMPOSE UI
 pub trait BecomposeCommands {
@@ -86,7 +86,7 @@ impl UiElement {
 pub struct TextElement {
     pub text: String,
     pub style: TextStyle,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
 }
 
 impl TextElement {
@@ -94,7 +94,7 @@ impl TextElement {
         Self {
             text: text.into(),
             style: TextStyle::default(),
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
         }
     }
 
@@ -103,7 +103,7 @@ impl TextElement {
         self
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }
@@ -127,7 +127,7 @@ impl TextElement {
 /// Button element builder
 pub struct ButtonElement {
     pub on_click: Arc<dyn Fn() + Send + Sync>,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
     pub enabled: bool,
     pub children: Vec<UiElement>,
 }
@@ -136,13 +136,13 @@ impl ButtonElement {
     pub fn new<F: Fn() + Send + Sync + 'static>(on_click: F) -> Self {
         Self {
             on_click: Arc::new(on_click),
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
             enabled: true,
             children: Vec::new(),
         }
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }
@@ -183,7 +183,7 @@ impl ButtonElement {
 /// Column element builder
 pub struct ColumnElement {
     pub layout: ColumnLayout,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
     pub children: Vec<UiElement>,
 }
 
@@ -191,7 +191,7 @@ impl ColumnElement {
     pub fn new() -> Self {
         Self {
             layout: ColumnLayout::default(),
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
             children: Vec::new(),
         }
     }
@@ -211,7 +211,7 @@ impl ColumnElement {
         self
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }
@@ -265,7 +265,7 @@ impl Default for ColumnElement {
 /// Row element builder
 pub struct RowElement {
     pub layout: RowLayout,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
     pub children: Vec<UiElement>,
 }
 
@@ -273,7 +273,7 @@ impl RowElement {
     pub fn new() -> Self {
         Self {
             layout: RowLayout::default(),
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
             children: Vec::new(),
         }
     }
@@ -293,7 +293,7 @@ impl RowElement {
         self
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }
@@ -347,7 +347,7 @@ impl Default for RowElement {
 /// Box element builder
 pub struct BoxElement {
     pub layout: BoxLayout,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
     pub children: Vec<UiElement>,
 }
 
@@ -355,7 +355,7 @@ impl BoxElement {
     pub fn new() -> Self {
         Self {
             layout: BoxLayout::default(),
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
             children: Vec::new(),
         }
     }
@@ -365,7 +365,7 @@ impl BoxElement {
         self
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }
@@ -405,17 +405,17 @@ impl Default for BoxElement {
 
 /// Spacer element builder
 pub struct SpacerElement {
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
 }
 
 impl SpacerElement {
     pub fn new() -> Self {
         Self {
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
         }
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }
@@ -477,6 +477,6 @@ pub fn spacer() -> UiElement {
 /// Create a sized spacer
 pub fn spacer_sized(width: f32, height: f32) -> UiElement {
     UiElement::Spacer(SpacerElement::new().with_modifier(
-        ModifierChain::new().size(width, height)
+        Modifiers::new().size(width, height)
     ))
 }

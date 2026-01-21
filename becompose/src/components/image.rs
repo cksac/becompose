@@ -3,24 +3,24 @@
 //! Image display composable.
 
 use bevy::prelude::*;
-use crate::modifier::ModifierChain;
+use crate::modifier::Modifiers;
 
 /// Configuration for an Image node
 #[derive(Debug, Clone)]
 pub struct ImageConfig {
     pub image: Handle<Image>,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
 }
 
 impl ImageConfig {
     pub fn new(image: Handle<Image>) -> Self {
         Self {
             image,
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
         }
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }

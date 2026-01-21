@@ -86,9 +86,10 @@ fn main() {
 fn TodoApp(state: AppState) {
     let state_for_add = state.clone();
     
-    Surface(ModifierChain::new().background(Color::srgb(0.1, 0.1, 0.15)), || {
+    // Surface accepts a single background modifier directly
+    Surface(Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.1, 0.1, 0.15))), || {
         Column(
-            ModifierChain::new()
+            Modifiers::new()
                 .fill_max_size()
                 .padding(24.0)
                 .vertical_arrangement(VerticalArrangement::Top)
@@ -98,10 +99,10 @@ fn TodoApp(state: AppState) {
                 // Title
                 Text("📝 Todo List", TextStyle::title().with_color(Color::WHITE));
                 
-                // Add button
+                // Add button - single modifier usage
                 Button(
                     "+ Add New Todo",
-                    ModifierChain::new().background(Color::srgb(0.3, 0.6, 0.9)),
+                    Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.3, 0.6, 0.9))),
                     move || {
                         state_for_add.add_todo();
                     }
@@ -120,7 +121,7 @@ fn TodoApp(state: AppState) {
 fn TodoList(state: AppState) {
     let todos = state.todos.get();
     
-    Column(ModifierChain::new().vertical_arrangement(VerticalArrangement::Top).horizontal_alignment(HorizontalAlignment::Start), || {
+    Column(Modifiers::new().vertical_arrangement(VerticalArrangement::Top).horizontal_alignment(HorizontalAlignment::Start), || {
         // ForEach iterates and composes content for each item
         ForEach(&todos, |todo| {
             TodoItem(todo, state.clone());
@@ -152,7 +153,7 @@ fn TodoItem(todo: &Todo, state: AppState) {
     };
     
     Row(
-        ModifierChain::new()
+        Modifiers::new()
             .fill_max_width()
             .padding(12.0)
             .background(bg_color)
@@ -161,17 +162,18 @@ fn TodoItem(todo: &Todo, state: AppState) {
             .column_gap(12.0),
         || {
             // Left side: checkbox + text
-            Row(ModifierChain::new().horizontal_arrangement(HorizontalArrangement::Start).vertical_alignment(VerticalAlignment::Center), || {
+            Row(Modifiers::new().horizontal_arrangement(HorizontalArrangement::Start).vertical_alignment(VerticalAlignment::Center), || {
                 // Checkbox button
+                // Checkbox uses a size modifier plus a background modifier inside a chain
                 Button(
                     if is_completed { "✓" } else { "○" },
-                    ModifierChain::new()
-                        .size(28.0, 28.0)
-                        .background(if is_completed {
+                    Modifiers::new()
+                        .then(SizeModifier::fixed(28.0, 28.0))
+                        .then(BackgroundModifier::new(if is_completed {
                             Color::srgb(0.3, 0.7, 0.4)
                         } else {
                             Color::srgb(0.3, 0.3, 0.35)
-                        }),
+                        })),
                     move || {
                         state_toggle.toggle_todo(todo_id);
                     }
@@ -188,10 +190,10 @@ fn TodoItem(todo: &Todo, state: AppState) {
                 Text(display_text, TextStyle::body().with_color(text_color));
             });
             
-            // Delete button
+            // Delete button (single background modifier)
             Button(
                 "×",
-                ModifierChain::new().background(Color::srgb(0.7, 0.3, 0.3)),
+                Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.7, 0.3, 0.3))),
                 move || {
                     state_delete.delete_todo(todo_id);
                 }

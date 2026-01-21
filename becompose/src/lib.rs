@@ -60,7 +60,7 @@ pub mod prelude {
 
     // Modifiers
     pub use crate::modifier::{
-        Modifier, ModifierChain, ModifierType, Modifiers,
+        Modifier, Modifiers, ModifierType,
         PaddingModifier, SizeModifier, FillModifier, WeightModifier,
         BackgroundModifier, BorderModifier,
         ClickableModifier,

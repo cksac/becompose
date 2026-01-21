@@ -3,7 +3,7 @@
 //! Card and other container composables.
 
 use bevy::prelude::*;
-use crate::modifier::ModifierChain;
+use crate::modifier::Modifiers;
 
 /// Configuration for a Card container
 #[derive(Debug, Clone)]
@@ -11,7 +11,7 @@ pub struct CardConfig {
     pub elevation: f32,
     pub corner_radius: f32,
     pub background_color: Color,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
 }
 
 impl CardConfig {
@@ -34,7 +34,7 @@ impl CardConfig {
         self
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }
@@ -46,7 +46,7 @@ impl Default for CardConfig {
             elevation: 2.0,
             corner_radius: 8.0,
             background_color: Color::srgb(0.15, 0.15, 0.15),
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
         }
     }
 }
@@ -71,18 +71,18 @@ impl Default for CardNode {
 #[derive(Debug, Clone)]
 pub struct SurfaceConfig {
     pub color: Color,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
 }
 
 impl SurfaceConfig {
     pub fn new(color: Color) -> Self {
         Self {
             color,
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
         }
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }

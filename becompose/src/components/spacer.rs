@@ -3,12 +3,12 @@
 //! Flexible space composable.
 
 use bevy::prelude::*;
-use crate::modifier::ModifierChain;
+use crate::modifier::Modifiers;
 
 /// Configuration for a Spacer
 #[derive(Debug, Clone, Default)]
 pub struct SpacerConfig {
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
 }
 
 impl SpacerConfig {
@@ -16,7 +16,7 @@ impl SpacerConfig {
         Self::default()
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }

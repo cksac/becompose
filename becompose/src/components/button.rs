@@ -4,7 +4,7 @@
 
 use bevy::prelude::*;
 use std::sync::Arc;
-use crate::modifier::ModifierChain;
+use crate::modifier::Modifiers;
 
 /// Click handler type
 pub type OnClick = Arc<dyn Fn() + Send + Sync>;
@@ -13,7 +13,7 @@ pub type OnClick = Arc<dyn Fn() + Send + Sync>;
 #[derive(Clone)]
 pub struct ButtonConfig {
     pub on_click: OnClick,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
     pub enabled: bool,
 }
 
@@ -21,12 +21,12 @@ impl ButtonConfig {
     pub fn new<F: Fn() + Send + Sync + 'static>(on_click: F) -> Self {
         Self {
             on_click: Arc::new(on_click),
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
             enabled: true,
         }
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }

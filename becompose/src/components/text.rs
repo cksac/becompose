@@ -3,7 +3,7 @@
 //! Text display composable.
 
 use bevy::prelude::*;
-use crate::modifier::ModifierChain;
+use crate::modifier::Modifiers;
 
 /// Text style configuration
 #[derive(Debug, Clone)]
@@ -72,7 +72,7 @@ impl Default for TextStyle {
 pub struct TextConfig {
     pub text: String,
     pub style: TextStyle,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
 }
 
 impl TextConfig {
@@ -80,7 +80,7 @@ impl TextConfig {
         Self {
             text: text.into(),
             style: TextStyle::default(),
-            modifier: ModifierChain::default(),
+            modifier: Modifiers::default(),
         }
     }
 
@@ -89,7 +89,7 @@ impl TextConfig {
         self
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }

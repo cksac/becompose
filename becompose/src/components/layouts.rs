@@ -4,13 +4,13 @@
 
 use bevy::prelude::*;
 use crate::layout::{ColumnLayout, RowLayout, BoxLayout};
-use crate::modifier::ModifierChain;
+use crate::modifier::Modifiers;
 
 /// Configuration for a Column layout
 #[derive(Debug, Clone, Default)]
 pub struct ColumnConfig {
     pub layout: ColumnLayout,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
 }
 
 impl ColumnConfig {
@@ -18,7 +18,7 @@ impl ColumnConfig {
         Self::default()
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }
@@ -34,7 +34,7 @@ pub struct ColumnNode {
 #[derive(Debug, Clone, Default)]
 pub struct RowConfig {
     pub layout: RowLayout,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
 }
 
 impl RowConfig {
@@ -42,7 +42,7 @@ impl RowConfig {
         Self::default()
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }
@@ -58,7 +58,7 @@ pub struct RowNode {
 #[derive(Debug, Clone, Default)]
 pub struct BoxConfig {
     pub layout: BoxLayout,
-    pub modifier: ModifierChain,
+    pub modifier: Modifiers,
 }
 
 impl BoxConfig {
@@ -66,7 +66,7 @@ impl BoxConfig {
         Self::default()
     }
 
-    pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
+    pub fn with_modifier(mut self, modifier: Modifiers) -> Self {
         self.modifier = modifier;
         self
     }

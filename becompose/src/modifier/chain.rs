@@ -31,28 +31,31 @@ pub trait Modifier: Send + Sync + 'static {
     fn modifier_type(&self) -> ModifierType;
 }
 
+
+
 /// Chain of modifiers applied to a composable
 #[derive(Default, Clone)]
-pub struct ModifierChain {
+pub struct Modifiers {
     modifiers: Vec<Arc<dyn Modifier>>,
 }
 
-impl std::fmt::Debug for ModifierChain {
+impl std::fmt::Debug for Modifiers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ModifierChain")
+        f.debug_struct("Modifiers")
             .field("modifier_count", &self.modifiers.len())
             .finish()
     }
 }
 
-impl ModifierChain {
+impl Modifiers {
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Add a modifier to the chain
     pub fn then<M: Modifier>(mut self, modifier: M) -> Self {
-        self.modifiers.push(Arc::new(modifier));
+        let arc: Arc<dyn Modifier> = Arc::new(modifier);
+        self.modifiers.push(arc);
         self
     }
 
@@ -214,46 +217,5 @@ impl ModifierChain {
                 None::<Arc<dyn Fn() + Send + Sync>>
             })
             .collect()
-    }
-}
-
-/// Public Modifier constructor type
-pub struct Modifiers;
-
-impl Modifiers {
-    pub fn padding(all: f32) -> ModifierChain {
-        ModifierChain::new().padding(all)
-    }
-
-    pub fn size(width: f32, height: f32) -> ModifierChain {
-        ModifierChain::new().size(width, height)
-    }
-
-    pub fn width(width: f32) -> ModifierChain {
-        ModifierChain::new().width(width)
-    }
-
-    pub fn height(height: f32) -> ModifierChain {
-        ModifierChain::new().height(height)
-    }
-
-    pub fn fill_max_width() -> ModifierChain {
-        ModifierChain::new().fill_max_width()
-    }
-
-    pub fn fill_max_height() -> ModifierChain {
-        ModifierChain::new().fill_max_height()
-    }
-
-    pub fn fill_max_size() -> ModifierChain {
-        ModifierChain::new().fill_max_size()
-    }
-
-    pub fn background(color: Color) -> ModifierChain {
-        ModifierChain::new().background(color)
-    }
-
-    pub fn clickable<F: Fn() + Send + Sync + 'static>(on_click: F) -> ModifierChain {
-        ModifierChain::new().clickable(on_click)
     }
 }

@@ -25,7 +25,7 @@ use bevy::prelude::*;
 use std::cell::RefCell;
 use std::sync::Arc;
 
-use crate::modifier::ModifierChain;
+use crate::modifier::Modifiers;
 use crate::components::TextStyle;
 
 pub use super::app::CompositionRoot;
@@ -220,11 +220,11 @@ pub fn Text(content: impl Into<String>, style: TextStyle) {
 /// 
 /// # Example
 /// ```ignore
-/// Button("Submit", Modifier::background(Color::BLUE), || submit());
+/// Button("Submit", Modifier().background(Color::BLUE), || submit());
 /// ```
 pub fn Button<F>(
     label: impl Into<String>,
-    modifier: ModifierChain,
+    modifier: Modifiers,
     on_click: F,
 )
 where
@@ -256,7 +256,7 @@ where
     // Use body style by default for button labels
     Text(label, TextStyle::body());
     pop_parent();
-}
+} 
 
 /// Spacer composable - flexible space that expands
 /// 
@@ -310,7 +310,7 @@ pub fn FixedSpacer(size: f32) {
 /// );
 /// ```
 pub fn Column<F>(
-    modifier: ModifierChain,
+    modifier: Modifiers,
     content: F,
 )
 where
@@ -331,13 +331,13 @@ where
     push_parent(column);
     content();
     pop_parent();
-}
+} 
 
 // Row now relies on `ModifierChain` for visual/layout properties
 
 /// Row with modifier
 pub fn Row<F>(
-    modifier: ModifierChain,
+    modifier: Modifiers,
     content: F,
 )
 where
@@ -358,13 +358,13 @@ where
     push_parent(row);
     content();
     pop_parent();
-}
+} 
 
 // Removed unstyled `Box`. Use the styled `Box(modifier, content)` instead.
 
 /// Box with modifier
 pub fn Box<F>(
-    modifier: ModifierChain,
+    modifier: Modifiers,
     content: F,
 )
 where
@@ -384,7 +384,7 @@ where
     push_parent(box_node);
     content();
     pop_parent();
-}
+} 
 
 // ============================================================================
 // Root Composable
@@ -394,7 +394,7 @@ where
 
 /// Surface with full modifier support
 pub fn Surface<F>(
-    modifier: ModifierChain,
+    modifier: Modifiers,
     content: F,
 )
 where
@@ -417,7 +417,7 @@ where
     push_parent(surface);
     content();
     pop_parent();
-} 
+}  
 
 // ============================================================================
 // List Composables
@@ -486,6 +486,6 @@ where
 // ============================================================================
 
 /// Create a modifier chain starting with padding
-pub fn Modifier() -> ModifierChain {
-    ModifierChain::new()
+pub fn Modifier() -> Modifiers {
+    Modifiers::new()
 }

@@ -23,10 +23,11 @@ fn main() {
 /// by calling other composable functions. No cx/commands needed!
 fn App() {
     // Surface is the root container (like Scaffold in Compose)
-    Surface(ModifierChain::new().background(Color::srgb(0.1, 0.1, 0.15)), || {
+    // Here we pass a single modifier directly (no need to construct a chain)
+    Surface(Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.1, 0.1, 0.15))), || {
         // Column arranges children vertically
         Column(
-            ModifierChain::new()
+            Modifiers::new()
                 .fill_max_size()
                 .vertical_arrangement(VerticalArrangement::Center)
                 .horizontal_alignment(HorizontalAlignment::Center)
@@ -42,8 +43,8 @@ fn App() {
                 
                 FixedSpacer(24.0);
                 
-                // Simple button
-                Button("Click me!", ModifierChain::new(), || {
+                // Simple button: demonstrate passing a single modifier (padding) directly
+                Button("Click me!", Modifiers::new().then(PaddingModifier::all(12.0)), || {
                     println!("Button clicked!");
                 });
             }

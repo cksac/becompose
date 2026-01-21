@@ -30,9 +30,10 @@ fn CounterApp(counter: State<i32>) {
     let counter_dec = counter.clone();
     let current_value = counter.get();
     
-    Surface(ModifierChain::new().background(Color::srgb(0.1, 0.1, 0.15)), || {
+    // Surface can accept a single background modifier directly
+    Surface(Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.1, 0.1, 0.15))), || {
         Column(
-            ModifierChain::new()
+            Modifiers::new()
                 .fill_max_size()
                 .vertical_arrangement(VerticalArrangement::Center)
                 .horizontal_alignment(HorizontalAlignment::Center)
@@ -51,25 +52,25 @@ fn CounterApp(counter: State<i32>) {
                 
                 // Button row
                 Row(
-                    ModifierChain::new()
+                    Modifiers::new()
                         .horizontal_arrangement(HorizontalArrangement::Center)
                         .vertical_alignment(VerticalAlignment::Center)
                         .column_gap(16.0),
                     || {
-                        // Decrement button - State::decrement auto-invalidates!
+                        // Decrement button - show single BackgroundModifier usage
                         Button(
                             "  −  ",
-                            ModifierChain::new().background(Color::srgb(0.8, 0.3, 0.3)),
+                            Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.8, 0.3, 0.3))),
                             move || {
                                 counter_dec.decrement();
                                 println!("Decremented!");
                             }
                         );
                         
-                        // Increment button - State::increment auto-invalidates!
+                        // Increment button - show single BackgroundModifier usage
                         Button(
                             "  +  ",
-                            ModifierChain::new().background(Color::srgb(0.3, 0.7, 0.4)),
+                            Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.3, 0.7, 0.4))),
                             move || {
                                 counter_inc.increment();
                                 println!("Incremented!");
