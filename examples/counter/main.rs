@@ -30,18 +30,18 @@ fn CounterApp(counter: State<i32>) {
     let counter_dec = counter.clone();
     let current_value = counter.get();
     
-    Surface(Color::srgb(0.1, 0.1, 0.15), || {
-        StyledColumn(
+    Surface(ModifierChain::new().background(Color::srgb(0.1, 0.1, 0.15)), || {
+        Column(
             ModifierChain::new().fill_max_size(),
             VerticalArrangement::Center,
             HorizontalAlignment::Center,
             24.0,
             || {
                 // Title
-                StyledText("Counter App 🔢", TextStyle::title().with_color(Color::WHITE));
+                Text("Counter App 🔢", TextStyle::title().with_color(Color::WHITE));
                 
                 // Counter display
-                StyledText(
+                Text(
                     format!("Count: {}", current_value),
                     TextStyle::headline().with_color(Color::srgb(0.4, 0.8, 1.0))
                 );
@@ -49,14 +49,14 @@ fn CounterApp(counter: State<i32>) {
                 FixedSpacer(16.0);
                 
                 // Button row
-                StyledRow(
+                Row(
                     ModifierChain::new(),
                     HorizontalArrangement::Center,
                     VerticalAlignment::Center,
                     16.0,
                     || {
                         // Decrement button - State::decrement auto-invalidates!
-                        StyledButton(
+                        Button(
                             "  −  ",
                             ModifierChain::new().background(Color::srgb(0.8, 0.3, 0.3)),
                             move || {
@@ -66,7 +66,7 @@ fn CounterApp(counter: State<i32>) {
                         );
                         
                         // Increment button - State::increment auto-invalidates!
-                        StyledButton(
+                        Button(
                             "  +  ",
                             ModifierChain::new().background(Color::srgb(0.3, 0.7, 0.4)),
                             move || {

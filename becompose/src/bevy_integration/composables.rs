@@ -195,31 +195,15 @@ impl State<i32> {
 // Core Composable Functions
 // ============================================================================
 
-/// Text composable - displays text
-/// 
-/// # Example
-/// ```ignore
-/// Text("Hello, World!");
-/// ```
-pub fn Text(content: impl Into<String>) {
-    let content = content.into();
-    spawn_child((
-        bevy::prelude::Text::new(content),
-        TextFont {
-            font_size: 16.0,
-            ..default()
-        },
-        TextColor(Color::WHITE),
-    ));
-}
+// Removed unstyled `Text` composable. Use the styled `Text(content, style: TextStyle)` instead.
 
-/// Styled text composable
+/// Text composable with styling
 /// 
 /// # Example
 /// ```ignore
-/// StyledText("Hello!", TextStyle::title().with_color(Color::WHITE));
+/// Text("Hello!", TextStyle::title().with_color(Color::WHITE));
 /// ```
-pub fn StyledText(content: impl Into<String>, style: TextStyle) {
+pub fn Text(content: impl Into<String>, style: TextStyle) {
     let content = content.into();
     spawn_child((
         bevy::prelude::Text::new(content),
@@ -229,53 +213,24 @@ pub fn StyledText(content: impl Into<String>, style: TextStyle) {
         },
         TextColor(style.color),
     ));
-}
+} 
 
-/// Button composable - a clickable button with text
+// Removed unstyled `Button`. Use the styled `Button(label, modifier, on_click)` with a `ModifierChain` instead.
+
+/// Button composable with modifier
 /// 
 /// # Example
 /// ```ignore
-/// Button("Click me", || println!("Clicked!"));
+/// Button("Submit", Modifier::background(Color::BLUE), || submit());
 /// ```
-pub fn Button<F>(label: impl Into<String>, on_click: F)
-where
-    F: Fn() + Send + Sync + 'static,
-{
-    let label = label.into();
-    let on_click = Arc::new(on_click);
-    
-    let button = spawn_child((
-        bevy::prelude::Button,
-        Node {
-            padding: UiRect::axes(Val::Px(16.0), Val::Px(8.0)),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        },
-        BackgroundColor(Color::srgb(0.25, 0.25, 0.3)),
-        BorderRadius::all(Val::Px(4.0)),
-        crate::components::Clickable { on_click },
-    ));
-    
-    push_parent(button);
-    Text(label);
-    pop_parent();
-}
-
-/// Styled button composable
-/// 
-/// # Example
-/// ```ignore
-/// StyledButton("Submit", Modifier::background(Color::BLUE), || submit());
-/// ```
-pub fn StyledButton<F>(
+pub fn Button<F>(
     label: impl Into<String>,
     modifier: ModifierChain,
     on_click: F,
 )
 where
     F: Fn() + Send + Sync + 'static,
-{
+{ 
     let label = label.into();
     let on_click = Arc::new(on_click);
     
@@ -299,7 +254,8 @@ where
     ));
     
     push_parent(button);
-    Text(label);
+    // Use body style by default for button labels
+    Text(label, TextStyle::body());
     pop_parent();
 }
 
@@ -337,39 +293,13 @@ pub fn FixedSpacer(size: f32) {
 // Layout Composables
 // ============================================================================
 
-/// Column layout composable - arranges children vertically
-/// 
-/// # Example
-/// ```ignore
-/// Column(|| {
-///     Text("First");
-///     Text("Second");
-///     Text("Third");
-/// });
-/// ```
-pub fn Column<F>(content: F)
-where
-    F: FnOnce(),
-{
-    let column = spawn_child((
-        Node {
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            ..default()
-        },
-        BackgroundColor(Color::NONE),
-    ));
-    
-    push_parent(column);
-    content();
-    pop_parent();
-}
+// Removed unstyled `Column`. Use the styled `Column(modifier, arrangement, alignment, spacing, content)` instead.
 
-/// Styled column with modifier and layout options
+/// Column with modifier and layout options
 /// 
 /// # Example
 /// ```ignore
-/// StyledColumn(
+/// Column(
 ///     Modifier::padding(16.0).background(Color::BLACK),
 ///     VerticalArrangement::Center,
 ///     HorizontalAlignment::Center,
@@ -379,7 +309,7 @@ where
 ///     }
 /// );
 /// ```
-pub fn StyledColumn<F>(
+pub fn Column<F>(
     modifier: ModifierChain,
     arrangement: VerticalArrangement,
     alignment: HorizontalAlignment,
@@ -397,7 +327,7 @@ where
         row_gap: Val::Px(spacing),
         ..default()
     };
-    modifier.apply_to_node(&mut node);
+    modifier.apply_to_node(&mut node); 
     
     let mut bg = BackgroundColor(Color::NONE);
     modifier.apply_to_background(&mut bg);
@@ -409,36 +339,10 @@ where
     pop_parent();
 }
 
-/// Row layout composable - arranges children horizontally
-/// 
-/// # Example
-/// ```ignore
-/// Row(|| {
-///     Text("Left");
-///     Spacer();
-///     Text("Right");
-/// });
-/// ```
-pub fn Row<F>(content: F)
-where
-    F: FnOnce(),
-{
-    let row = spawn_child((
-        Node {
-            display: Display::Flex,
-            flex_direction: FlexDirection::Row,
-            ..default()
-        },
-        BackgroundColor(Color::NONE),
-    ));
-    
-    push_parent(row);
-    content();
-    pop_parent();
-}
+// Removed unstyled `Row`. Use the styled `Row(modifier, arrangement, alignment, spacing, content)` instead.
 
-/// Styled row with modifier and layout options
-pub fn StyledRow<F>(
+/// Row with modifier and layout options
+pub fn Row<F>(
     modifier: ModifierChain,
     arrangement: HorizontalArrangement,
     alignment: VerticalAlignment,
@@ -456,7 +360,7 @@ where
         column_gap: Val::Px(spacing),
         ..default()
     };
-    modifier.apply_to_node(&mut node);
+    modifier.apply_to_node(&mut node); 
     
     let mut bg = BackgroundColor(Color::NONE);
     modifier.apply_to_background(&mut bg);
@@ -468,34 +372,10 @@ where
     pop_parent();
 }
 
-/// Box layout composable - stacks children on top of each other
-/// 
-/// # Example
-/// ```ignore
-/// Box(|| {
-///     Image("background.png");
-///     Text("Overlay text");
-/// });
-/// ```
-pub fn Box<F>(content: F)
-where
-    F: FnOnce(),
-{
-    let box_node = spawn_child((
-        Node {
-            display: Display::Flex,
-            ..default()
-        },
-        BackgroundColor(Color::NONE),
-    ));
-    
-    push_parent(box_node);
-    content();
-    pop_parent();
-}
+// Removed unstyled `Box`. Use the styled `Box(modifier, content)` instead.
 
-/// Styled box with modifier
-pub fn StyledBox<F>(
+/// Box with modifier
+pub fn Box<F>(
     modifier: ModifierChain,
     content: F,
 )
@@ -506,7 +386,7 @@ where
         display: Display::Flex,
         ..default()
     };
-    modifier.apply_to_node(&mut node);
+    modifier.apply_to_node(&mut node); 
     
     let mut bg = BackgroundColor(Color::NONE);
     modifier.apply_to_background(&mut bg);
@@ -522,39 +402,10 @@ where
 // Root Composable
 // ============================================================================
 
-/// Surface composable - a root container that fills the screen
-/// Use this as the top-level composable for your app.
-/// 
-/// # Example
-/// ```ignore
-/// Surface(Color::srgb(0.1, 0.1, 0.15), || {
-///     Column(|| {
-///         Text("Hello, World!");
-///     });
-/// });
-/// ```
-pub fn Surface<F>(background: Color, content: F)
-where
-    F: FnOnce(),
-{
-    let surface = spawn_child((
-        Node {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            ..default()
-        },
-        BackgroundColor(background),
-    ));
-    
-    push_parent(surface);
-    content();
-    pop_parent();
-}
+// Removed unstyled `Surface`. Use the styled `Surface(modifier, content)` instead.
 
-/// Styled surface with full modifier support
-pub fn StyledSurface<F>(
+/// Surface with full modifier support
+pub fn Surface<F>(
     modifier: ModifierChain,
     content: F,
 )
@@ -578,7 +429,7 @@ where
     push_parent(surface);
     content();
     pop_parent();
-}
+} 
 
 // ============================================================================
 // List Composables

@@ -94,12 +94,12 @@ pub mod prelude {
         // Reactive State
         State,
         // Composable functions (Jetpack Compose style)
-        Text, StyledText,
-        Button, StyledButton,
-        Column, StyledColumn,
-        Row, StyledRow,
-        Box, StyledBox,
-        Surface, StyledSurface,
+        Text,
+        Button,
+        Column,
+        Row,
+        Box,
+        Surface,
         Spacer, FixedSpacer,
         ForEach, If, IfElse,
     };

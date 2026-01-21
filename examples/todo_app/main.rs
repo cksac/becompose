@@ -86,8 +86,8 @@ fn main() {
 fn TodoApp(state: AppState) {
     let state_for_add = state.clone();
     
-    Surface(Color::srgb(0.1, 0.1, 0.15), || {
-        StyledColumn(
+    Surface(ModifierChain::new().background(Color::srgb(0.1, 0.1, 0.15)), || {
+        Column(
             ModifierChain::new()
                 .fill_max_size()
                 .padding(24.0),
@@ -96,10 +96,10 @@ fn TodoApp(state: AppState) {
             16.0,
             || {
                 // Title
-                StyledText("📝 Todo List", TextStyle::title().with_color(Color::WHITE));
+                Text("📝 Todo List", TextStyle::title().with_color(Color::WHITE));
                 
                 // Add button
-                StyledButton(
+                Button(
                     "+ Add New Todo",
                     ModifierChain::new().background(Color::srgb(0.3, 0.6, 0.9)),
                     move || {
@@ -120,7 +120,7 @@ fn TodoApp(state: AppState) {
 fn TodoList(state: AppState) {
     let todos = state.todos.get();
     
-    Column(|| {
+    Column(ModifierChain::new(), VerticalArrangement::Top, HorizontalAlignment::Start, 0.0, || {
         // ForEach iterates and composes content for each item
         ForEach(&todos, |todo| {
             TodoItem(todo, state.clone());
@@ -151,7 +151,7 @@ fn TodoItem(todo: &Todo, state: AppState) {
         Color::WHITE
     };
     
-    StyledRow(
+    Row(
         ModifierChain::new()
             .fill_max_width()
             .padding(12.0)
@@ -161,9 +161,9 @@ fn TodoItem(todo: &Todo, state: AppState) {
         12.0,
         || {
             // Left side: checkbox + text
-            Row(|| {
+            Row(ModifierChain::new(), HorizontalArrangement::Start, VerticalAlignment::Center, 0.0, || {
                 // Checkbox button
-                StyledButton(
+                Button(
                     if is_completed { "✓" } else { "○" },
                     ModifierChain::new()
                         .size(28.0, 28.0)
@@ -185,11 +185,11 @@ fn TodoItem(todo: &Todo, state: AppState) {
                 } else {
                     title.clone()
                 };
-                StyledText(display_text, TextStyle::body().with_color(text_color));
+                Text(display_text, TextStyle::body().with_color(text_color));
             });
             
             // Delete button
-            StyledButton(
+            Button(
                 "×",
                 ModifierChain::new().background(Color::srgb(0.7, 0.3, 0.3)),
                 move || {
