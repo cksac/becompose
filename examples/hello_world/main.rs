@@ -26,10 +26,11 @@ fn App() {
     Surface(ModifierChain::new().background(Color::srgb(0.1, 0.1, 0.15)), || {
         // Column arranges children vertically
         Column(
-            ModifierChain::new().fill_max_size(),
-            VerticalArrangement::Center,
-            HorizontalAlignment::Center,
-            16.0, // spacing
+            ModifierChain::new()
+                .fill_max_size()
+                .vertical_arrangement(VerticalArrangement::Center)
+                .horizontal_alignment(HorizontalAlignment::Center)
+                .row_gap(16.0),
             || {
                 // Composable function calls - just like Jetpack Compose!
                 Text("Hello, BECOMPOSE! 🎮", TextStyle::title().with_color(Color::WHITE));

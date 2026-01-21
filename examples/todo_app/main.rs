@@ -90,10 +90,10 @@ fn TodoApp(state: AppState) {
         Column(
             ModifierChain::new()
                 .fill_max_size()
-                .padding(24.0),
-            VerticalArrangement::Top,
-            HorizontalAlignment::Start,
-            16.0,
+                .padding(24.0)
+                .vertical_arrangement(VerticalArrangement::Top)
+                .horizontal_alignment(HorizontalAlignment::Start)
+                .row_gap(16.0),
             || {
                 // Title
                 Text("📝 Todo List", TextStyle::title().with_color(Color::WHITE));
@@ -120,7 +120,7 @@ fn TodoApp(state: AppState) {
 fn TodoList(state: AppState) {
     let todos = state.todos.get();
     
-    Column(ModifierChain::new(), VerticalArrangement::Top, HorizontalAlignment::Start, 0.0, || {
+    Column(ModifierChain::new().vertical_arrangement(VerticalArrangement::Top).horizontal_alignment(HorizontalAlignment::Start), || {
         // ForEach iterates and composes content for each item
         ForEach(&todos, |todo| {
             TodoItem(todo, state.clone());
@@ -155,13 +155,13 @@ fn TodoItem(todo: &Todo, state: AppState) {
         ModifierChain::new()
             .fill_max_width()
             .padding(12.0)
-            .background(bg_color),
-        HorizontalArrangement::SpaceBetween,
-        VerticalAlignment::Center,
-        12.0,
+            .background(bg_color)
+            .horizontal_arrangement(HorizontalArrangement::SpaceBetween)
+            .vertical_alignment(VerticalAlignment::Center)
+            .column_gap(12.0),
         || {
             // Left side: checkbox + text
-            Row(ModifierChain::new(), HorizontalArrangement::Start, VerticalAlignment::Center, 0.0, || {
+            Row(ModifierChain::new().horizontal_arrangement(HorizontalArrangement::Start).vertical_alignment(VerticalAlignment::Center), || {
                 // Checkbox button
                 Button(
                     if is_completed { "✓" } else { "○" },

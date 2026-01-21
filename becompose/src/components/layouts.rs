@@ -3,7 +3,7 @@
 //! Column, Row, and Box composables.
 
 use bevy::prelude::*;
-use crate::layout::{ColumnLayout, RowLayout, BoxLayout, VerticalArrangement, HorizontalArrangement, HorizontalAlignment, VerticalAlignment, Alignment2D};
+use crate::layout::{ColumnLayout, RowLayout, BoxLayout};
 use crate::modifier::ModifierChain;
 
 /// Configuration for a Column layout
@@ -16,21 +16,6 @@ pub struct ColumnConfig {
 impl ColumnConfig {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn with_arrangement(mut self, arrangement: VerticalArrangement) -> Self {
-        self.layout = self.layout.with_arrangement(arrangement);
-        self
-    }
-
-    pub fn with_alignment(mut self, alignment: HorizontalAlignment) -> Self {
-        self.layout = self.layout.with_alignment(alignment);
-        self
-    }
-
-    pub fn with_spacing(mut self, spacing: f32) -> Self {
-        self.layout = self.layout.with_spacing(spacing);
-        self
     }
 
     pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
@@ -57,21 +42,6 @@ impl RowConfig {
         Self::default()
     }
 
-    pub fn with_arrangement(mut self, arrangement: HorizontalArrangement) -> Self {
-        self.layout = self.layout.with_arrangement(arrangement);
-        self
-    }
-
-    pub fn with_alignment(mut self, alignment: VerticalAlignment) -> Self {
-        self.layout = self.layout.with_alignment(alignment);
-        self
-    }
-
-    pub fn with_spacing(mut self, spacing: f32) -> Self {
-        self.layout = self.layout.with_spacing(spacing);
-        self
-    }
-
     pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {
         self.modifier = modifier;
         self
@@ -94,11 +64,6 @@ pub struct BoxConfig {
 impl BoxConfig {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn with_alignment(mut self, alignment: Alignment2D) -> Self {
-        self.layout = self.layout.with_alignment(alignment);
-        self
     }
 
     pub fn with_modifier(mut self, modifier: ModifierChain) -> Self {

@@ -4,6 +4,7 @@
 
 use bevy::prelude::*;
 use std::sync::Arc;
+use crate::layout::{VerticalArrangement, HorizontalArrangement, HorizontalAlignment, VerticalAlignment};
 
 /// Categories of modifiers for ordering
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -126,7 +127,53 @@ impl ModifierChain {
         use super::WeightModifier;
         self.then(WeightModifier::new(weight))
     }
+    /// Set vertical arrangement for Column (maps to justify_content)
+    pub fn vertical_arrangement(self, arrangement: VerticalArrangement) -> Self {
+        use super::JustifyModifier;
+        self.then(JustifyModifier::new(arrangement.to_justify_content()))
+    }
 
+    /// Set horizontal arrangement for Row (maps to justify_content)
+    pub fn horizontal_arrangement(self, arrangement: HorizontalArrangement) -> Self {
+        use super::JustifyModifier;
+        self.then(JustifyModifier::new(arrangement.to_justify_content()))
+    }
+
+    /// Set horizontal alignment (maps to align_items)
+    pub fn horizontal_alignment(self, alignment: HorizontalAlignment) -> Self {
+        use super::AlignItemsModifier;
+        self.then(AlignItemsModifier::new(alignment.to_align_items()))
+    }
+
+    /// Set vertical alignment (maps to align_items)
+    pub fn vertical_alignment(self, alignment: VerticalAlignment) -> Self {
+        use super::AlignItemsModifier;
+        self.then(AlignItemsModifier::new(alignment.to_align_items()))
+    }
+
+    /// Set row gap (spacing between rows/children in Column)
+    pub fn row_gap(self, gap: f32) -> Self {
+        use super::RowGapModifier;
+        self.then(RowGapModifier::new(gap))
+    }
+
+    /// Set column gap (spacing between columns/children in Row)
+    pub fn column_gap(self, gap: f32) -> Self {
+        use super::ColumnGapModifier;
+        self.then(ColumnGapModifier::new(gap))
+    }
+
+    /// Set justify content directly
+    pub fn justify_content(self, justify: JustifyContent) -> Self {
+        use super::JustifyModifier;
+        self.then(JustifyModifier::new(justify))
+    }
+
+    /// Set align items directly
+    pub fn align_items(self, align: AlignItems) -> Self {
+        use super::AlignItemsModifier;
+        self.then(AlignItemsModifier::new(align))
+    }
     /// Apply all modifiers to a Node component
     pub fn apply_to_node(&self, node: &mut Node) {
         for modifier in &self.modifiers {

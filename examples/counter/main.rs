@@ -32,10 +32,11 @@ fn CounterApp(counter: State<i32>) {
     
     Surface(ModifierChain::new().background(Color::srgb(0.1, 0.1, 0.15)), || {
         Column(
-            ModifierChain::new().fill_max_size(),
-            VerticalArrangement::Center,
-            HorizontalAlignment::Center,
-            24.0,
+            ModifierChain::new()
+                .fill_max_size()
+                .vertical_arrangement(VerticalArrangement::Center)
+                .horizontal_alignment(HorizontalAlignment::Center)
+                .row_gap(24.0),
             || {
                 // Title
                 Text("Counter App 🔢", TextStyle::title().with_color(Color::WHITE));
@@ -50,10 +51,10 @@ fn CounterApp(counter: State<i32>) {
                 
                 // Button row
                 Row(
-                    ModifierChain::new(),
-                    HorizontalArrangement::Center,
-                    VerticalAlignment::Center,
-                    16.0,
+                    ModifierChain::new()
+                        .horizontal_arrangement(HorizontalArrangement::Center)
+                        .vertical_alignment(VerticalAlignment::Center)
+                        .column_gap(16.0),
                     || {
                         // Decrement button - State::decrement auto-invalidates!
                         Button(

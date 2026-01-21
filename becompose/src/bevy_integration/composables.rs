@@ -27,7 +27,6 @@ use std::sync::Arc;
 
 use crate::modifier::ModifierChain;
 use crate::components::TextStyle;
-use crate::layout::{VerticalArrangement, HorizontalArrangement, HorizontalAlignment, VerticalAlignment};
 
 pub use super::app::CompositionRoot;
 pub use super::app::invalidate;
@@ -293,17 +292,18 @@ pub fn FixedSpacer(size: f32) {
 // Layout Composables
 // ============================================================================
 
-// Removed unstyled `Column`. Use the styled `Column(modifier, arrangement, alignment, spacing, content)` instead.
+// Column now relies on `ModifierChain` for visual/layout properties
 
-/// Column with modifier and layout options
+/// Column with modifier
 /// 
 /// # Example
 /// ```ignore
 /// Column(
-///     Modifier::padding(16.0).background(Color::BLACK),
-///     VerticalArrangement::Center,
-///     HorizontalAlignment::Center,
-///     16.0, // spacing
+///     ModifierChain::new()
+///         .padding(16.0)
+///         .vertical_arrangement(VerticalArrangement::Center)
+///         .horizontal_alignment(HorizontalAlignment::Center)
+///         .row_gap(16.0),
 ///     || {
 ///         Text("Centered content");
 ///     }
@@ -311,9 +311,6 @@ pub fn FixedSpacer(size: f32) {
 /// ```
 pub fn Column<F>(
     modifier: ModifierChain,
-    arrangement: VerticalArrangement,
-    alignment: HorizontalAlignment,
-    spacing: f32,
     content: F,
 )
 where
@@ -322,9 +319,6 @@ where
     let mut node = Node {
         display: Display::Flex,
         flex_direction: FlexDirection::Column,
-        justify_content: arrangement.to_justify_content(),
-        align_items: alignment.to_align_items(),
-        row_gap: Val::Px(spacing),
         ..default()
     };
     modifier.apply_to_node(&mut node); 
@@ -339,14 +333,11 @@ where
     pop_parent();
 }
 
-// Removed unstyled `Row`. Use the styled `Row(modifier, arrangement, alignment, spacing, content)` instead.
+// Row now relies on `ModifierChain` for visual/layout properties
 
-/// Row with modifier and layout options
+/// Row with modifier
 pub fn Row<F>(
     modifier: ModifierChain,
-    arrangement: HorizontalArrangement,
-    alignment: VerticalAlignment,
-    spacing: f32,
     content: F,
 )
 where
@@ -355,9 +346,6 @@ where
     let mut node = Node {
         display: Display::Flex,
         flex_direction: FlexDirection::Row,
-        justify_content: arrangement.to_justify_content(),
-        align_items: alignment.to_align_items(),
-        column_gap: Val::Px(spacing),
         ..default()
     };
     modifier.apply_to_node(&mut node); 

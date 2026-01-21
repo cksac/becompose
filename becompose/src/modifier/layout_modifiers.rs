@@ -178,3 +178,91 @@ impl Modifier for MarginModifier {
         ModifierType::Layout
     }
 }
+
+/// Justify content modifier (sets `justify_content` on Node)
+#[derive(Debug, Clone)]
+pub struct JustifyModifier {
+    pub justify: JustifyContent,
+}
+
+impl JustifyModifier {
+    pub fn new(justify: JustifyContent) -> Self {
+        Self { justify }
+    }
+}
+
+impl Modifier for JustifyModifier {
+    fn apply_to_node(&self, node: &mut Node) {
+        node.justify_content = self.justify;
+    }
+
+    fn modifier_type(&self) -> ModifierType {
+        ModifierType::Layout
+    }
+}
+
+/// Align items modifier (sets `align_items` on Node)
+#[derive(Debug, Clone)]
+pub struct AlignItemsModifier {
+    pub align: AlignItems,
+}
+
+impl AlignItemsModifier {
+    pub fn new(align: AlignItems) -> Self {
+        Self { align }
+    }
+}
+
+impl Modifier for AlignItemsModifier {
+    fn apply_to_node(&self, node: &mut Node) {
+        node.align_items = self.align;
+    }
+
+    fn modifier_type(&self) -> ModifierType {
+        ModifierType::Layout
+    }
+}
+
+/// Row gap modifier (sets `row_gap` on Node)
+#[derive(Debug, Clone)]
+pub struct RowGapModifier {
+    pub gap: f32,
+}
+
+impl RowGapModifier {
+    pub fn new(gap: f32) -> Self {
+        Self { gap }
+    }
+}
+
+impl Modifier for RowGapModifier {
+    fn apply_to_node(&self, node: &mut Node) {
+        node.row_gap = Val::Px(self.gap);
+    }
+
+    fn modifier_type(&self) -> ModifierType {
+        ModifierType::Layout
+    }
+}
+
+/// Column gap modifier (sets `column_gap` on Node)
+#[derive(Debug, Clone)]
+pub struct ColumnGapModifier {
+    pub gap: f32,
+}
+
+impl ColumnGapModifier {
+    pub fn new(gap: f32) -> Self {
+        Self { gap }
+    }
+}
+
+impl Modifier for ColumnGapModifier {
+    fn apply_to_node(&self, node: &mut Node) {
+        node.column_gap = Val::Px(self.gap);
+    }
+
+    fn modifier_type(&self) -> ModifierType {
+        ModifierType::Layout
+    }
+}
