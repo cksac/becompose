@@ -1,0 +1,12 @@
+[package]
+name = "counter"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "counter"
+path = "main.rs"
+
+[dependencies]
+becompose = { path = "../../becompose" }
+bevy = "0.15"

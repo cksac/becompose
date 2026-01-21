@@ -1,0 +1,11 @@
+[package]
+name = "becompose"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+becompose_macros = { path = "../becompose_macros" }
+bevy = { workspace = true }
+
+[dev-dependencies]

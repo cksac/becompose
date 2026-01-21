@@ -1,0 +1,12 @@
+[package]
+name = "todo_app"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "todo_app"
+path = "main.rs"
+
+[dependencies]
+becompose = { path = "../../becompose" }
+bevy = "0.15"
