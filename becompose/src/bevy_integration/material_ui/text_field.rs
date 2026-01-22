@@ -17,11 +17,8 @@ use crate::bevy_integration::material_ui::spawn_material_child;
 ///     println!("Text changed: {}", value);
 /// });
 /// ```
-pub fn FilledTextField<F>(
-    label: impl Into<String>,
-    initial_value: impl Into<String>,
-    on_change: F,
-) where
+pub fn FilledTextField<F>(label: impl Into<String>, initial_value: impl Into<String>, on_change: F)
+where
     F: Fn(String) + Send + Sync + 'static,
 {
     TextField(label, initial_value, TextFieldVariant::Filled, on_change);
@@ -84,11 +81,8 @@ pub fn TextField<F>(
 }
 
 /// Design text field composable with full configuration
-pub fn TextFieldConfigured<F, S>(
-    config: TextFieldConfig,
-    on_change: F,
-    on_submit: S,
-) where
+pub fn TextFieldConfigured<F, S>(config: TextFieldConfig, on_change: F, on_submit: S)
+where
     F: Fn(String) + Send + Sync + 'static,
     S: Fn(String) + Send + Sync + 'static,
 {

@@ -70,11 +70,8 @@ where
 }
 
 /// Design icon button composable with variant
-pub fn IconButtonWithVariant<F>(
-    icon: impl Into<String>,
-    variant: IconButtonVariant,
-    on_click: F,
-) where
+pub fn IconButtonWithVariant<F>(icon: impl Into<String>, variant: IconButtonVariant, on_click: F)
+where
     F: Fn() + Send + Sync + 'static,
 {
     with_implicit_scope(|| {

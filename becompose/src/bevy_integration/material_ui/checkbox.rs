@@ -17,11 +17,8 @@ use crate::bevy_integration::material_ui::spawn_material_child;
 ///     println!("Checkbox state changed to: {:?}", new_state);
 /// });
 /// ```
-pub fn Checkbox<F>(
-    label: impl Into<String>,
-    initial_state: CheckboxState,
-    on_change: F,
-) where
+pub fn Checkbox<F>(label: impl Into<String>, initial_state: CheckboxState, on_change: F)
+where
     F: Fn(CheckboxState) + Send + Sync + 'static,
 {
     with_implicit_scope(|| {

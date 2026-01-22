@@ -45,13 +45,8 @@ where
 ///     println!("Volume: {}", value);
 /// });
 /// ```
-pub fn SliderWithLabel<F>(
-    label: impl Into<String>,
-    value: f32,
-    min: f32,
-    max: f32,
-    on_change: F,
-) where
+pub fn SliderWithLabel<F>(label: impl Into<String>, value: f32, min: f32, max: f32, on_change: F)
+where
     F: Fn(f32) + Send + Sync + 'static,
 {
     with_implicit_scope(|| {
