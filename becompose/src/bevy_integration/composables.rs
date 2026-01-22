@@ -22,6 +22,7 @@
 #![allow(non_snake_case)]
 
 use bevy::prelude::*;
+use generational_box::{AnyStorage, GenerationalBox, Owner, SyncStorage};
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -373,11 +374,51 @@ fn with_commands<R>(f: impl FnOnce(&mut Commands) -> R) -> R {
 }
 
 // ============================================================================
+// State Owner Management (generational-box)
+// ============================================================================
+
+/// Global owner that manages the lifetime of all State values.
+/// Using RwLock for thread-safety since SyncStorage requires Send+Sync.
+static STATE_OWNER: RwLock<Option<Owner<SyncStorage>>> = RwLock::new(None);
+
+/// Initialize the global state owner. Called once at app startup.
+fn ensure_state_owner() -> Owner<SyncStorage> {
+    {
+        let guard = STATE_OWNER.read().unwrap();
+        if let Some(ref owner) = *guard {
+            return owner.clone();
+        }
+    }
+    let mut guard = STATE_OWNER.write().unwrap();
+    if guard.is_none() {
+        *guard = Some(SyncStorage::owner());
+    }
+    guard.as_ref().unwrap().clone()
+}
+
+/// Create a new State value using the global owner.
+/// The state will be valid for the lifetime of the application.
+fn create_state_box<T: Send + Sync + 'static>(value: T) -> GenerationalBox<T, SyncStorage> {
+    let owner = ensure_state_owner();
+    owner.insert(value)
+}
+
+// ============================================================================
 // Reactive State
 // ============================================================================
 
+/// Inner state data holding value and subscribers
+struct StateInner<T> {
+    value: T,
+    /// Scopes that have read from this state
+    subscribers: HashSet<ScopeId>,
+}
+
 /// Reactive state that automatically triggers recomposition when modified.
 /// Similar to MutableState in Jetpack Compose.
+///
+/// State is `Copy` thanks to generational-box, so you don't need to clone it!
+/// Just pass it around freely.
 ///
 /// State tracks which composition scope(s) read from it and only marks those
 /// scopes as dirty when the value changes, enabling granular recomposition.
@@ -386,32 +427,34 @@ fn with_commands<R>(f: impl FnOnce(&mut Commands) -> R) -> R {
 /// ```ignore
 /// let count = State::new(0);
 ///
-/// Button("Increment", {
-///     let count = count.clone();
-///     move || count.set(count.get() + 1)
-/// });
+/// // No need for count.clone()! State is Copy!
+/// Button("Increment", move || count.set(count.get() + 1));
 ///
 /// Text(format!("Count: {}", count.get()));
 /// ```
-#[derive(Clone)]
-pub struct State<T: Clone + Send + Sync + 'static> {
-    inner: Arc<StateInner<T>>,
+pub struct State<T: 'static> {
+    inner: GenerationalBox<RwLock<StateInner<T>>, SyncStorage>,
 }
 
-struct StateInner<T> {
-    value: RwLock<T>,
-    /// Scopes that have read from this state
-    subscribers: RwLock<HashSet<ScopeId>>,
+// Manually implement Copy and Clone since GenerationalBox is Copy
+// regardless of T, and we want State to be Copy for any T
+impl<T: 'static> Copy for State<T> {}
+
+impl<T: 'static> Clone for State<T> {
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 
 impl<T: Clone + Send + Sync + 'static> State<T> {
     /// Create a new reactive state with an initial value
     pub fn new(value: T) -> Self {
+        let inner = StateInner {
+            value,
+            subscribers: HashSet::new(),
+        };
         Self {
-            inner: Arc::new(StateInner {
-                value: RwLock::new(value),
-                subscribers: RwLock::new(HashSet::new()),
-            }),
+            inner: create_state_box(RwLock::new(inner)),
         }
     }
 
@@ -419,40 +462,61 @@ impl<T: Clone + Send + Sync + 'static> State<T> {
     pub fn get(&self) -> T {
         // Subscribe current scope to this state
         if let Some(scope_id) = current_scope_id() {
-            let mut subscribers = self.inner.subscribers.write().unwrap();
-            subscribers.insert(scope_id);
+            if let Ok(inner_guard) = self.inner.try_read() {
+                if let Ok(mut inner) = inner_guard.write() {
+                    inner.subscribers.insert(scope_id);
+                }
+            }
         }
-        self.inner.value.read().unwrap().clone()
+        self.inner
+            .try_read()
+            .ok()
+            .and_then(|guard| guard.read().ok().map(|inner| inner.value.clone()))
+            .expect("State was dropped")
     }
 
     /// Get the value without subscribing (useful for event handlers)
     pub fn get_untracked(&self) -> T {
-        self.inner.value.read().unwrap().clone()
+        self.inner
+            .try_read()
+            .ok()
+            .and_then(|guard| guard.read().ok().map(|inner| inner.value.clone()))
+            .expect("State was dropped")
     }
 
     /// Set a new value and trigger recomposition of subscribed scopes
     pub fn set(&self, value: T) {
-        *self.inner.value.write().unwrap() = value;
-        self.notify_subscribers();
+        let subscribers = {
+            let inner_guard = self.inner.try_read().expect("State was dropped");
+            let mut inner = inner_guard.write().unwrap();
+            inner.value = value;
+            inner.subscribers.clone()
+        };
+        Self::notify_subscribers_static(&subscribers);
     }
 
     /// Update the value using a function and trigger recomposition
     pub fn update(&self, f: impl FnOnce(&mut T)) {
-        {
-            let mut guard = self.inner.value.write().unwrap();
-            f(&mut *guard);
-        }
-        self.notify_subscribers();
+        let subscribers = {
+            let inner_guard = self.inner.try_read().expect("State was dropped");
+            let mut inner = inner_guard.write().unwrap();
+            f(&mut inner.value);
+            inner.subscribers.clone()
+        };
+        Self::notify_subscribers_static(&subscribers);
     }
 
     /// Modify without triggering recomposition (for batched updates)
     pub fn set_silent(&self, value: T) {
-        *self.inner.value.write().unwrap() = value;
+        if let Ok(inner_guard) = self.inner.try_read() {
+            if let Ok(mut inner) = inner_guard.write() {
+                inner.value = value;
+            }
+        }
     }
 
     /// Notify all subscribed scopes that this state changed
-    fn notify_subscribers(&self) {
-        let subscribers = self.inner.subscribers.read().unwrap();
+    fn notify_subscribers_static(subscribers: &HashSet<ScopeId>) {
         if subscribers.is_empty() {
             // No subscribers, fall back to global invalidation
             mark_scope_dirty(ScopeId(0));
@@ -465,7 +529,11 @@ impl<T: Clone + Send + Sync + 'static> State<T> {
 
     /// Clear subscriber list (called during recomposition)
     pub fn clear_subscribers(&self) {
-        self.inner.subscribers.write().unwrap().clear();
+        if let Ok(inner_guard) = self.inner.try_read() {
+            if let Ok(mut inner) = inner_guard.write() {
+                inner.subscribers.clear();
+            }
+        }
     }
 }
 
@@ -922,9 +990,9 @@ where
     F: Fn(State<T>) + Send + Sync + 'static,
 {
     let state = State::new(initial);
-    let state_for_content = state.clone();
 
     Scope(move || {
-        content(state_for_content.clone());
+        // State<T> is Copy, no need to clone
+        content(state);
     });
 }

@@ -7,5 +7,6 @@ license.workspace = true
 [dependencies]
 becompose_macros = { path = "../becompose_macros" }
 bevy = { workspace = true }
+generational-box = "0.7"
 
 [dev-dependencies]

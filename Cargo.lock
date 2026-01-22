@@ -311,6 +311,7 @@ version = "0.1.0"
 dependencies = [
  "becompose_macros",
  "bevy",
+ "generational-box",
 ]
 
 [[package]]
@@ -2140,6 +2141,16 @@ dependencies = [
  "pin-project-lite",
  "pin-utils",
  "slab",
+]
+
+[[package]]
+name = "generational-box"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cc4ed190b9de8e734d47a70be59b1e7588b9e8e0d0036e332f4c014e8aed1bc5"
+dependencies = [
+ "parking_lot",
+ "tracing",
 ]
 
 [[package]]
