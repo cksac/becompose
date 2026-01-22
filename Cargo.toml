@@ -9,4 +9,4 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/example/becompose"
 
 [workspace.dependencies]
-bevy = "0.15"
+bevy = "0.17"

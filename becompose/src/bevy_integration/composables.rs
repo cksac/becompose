@@ -200,17 +200,17 @@ pub fn invalidate() {
 // ============================================================================
 
 /// Internal composition context stored in thread-local
-struct CompositionContext {
-    parent_stack: Vec<Entity>,
-    commands: *mut Commands<'static, 'static>,
+pub struct CompositionContext {
+    pub parent_stack: Vec<Entity>,
+    pub commands: *mut Commands<'static, 'static>,
     /// Stack of scope IDs for tracking which scope we're in
-    scope_stack: Vec<ScopeId>,
+    pub scope_stack: Vec<ScopeId>,
     /// Map of scope ID to its root entity (for selective rebuilding)
-    scope_root_entities: std::collections::HashMap<ScopeId, Entity>,
+    pub scope_root_entities: std::collections::HashMap<ScopeId, Entity>,
     /// Map of scope ID to ALL entities in that scope (for cleanup)
-    scope_all_entities: std::collections::HashMap<ScopeId, Vec<Entity>>,
+    pub scope_all_entities: std::collections::HashMap<ScopeId, Vec<Entity>>,
     /// Map of entity to its scope (for cleanup)
-    entity_scopes: std::collections::HashMap<Entity, ScopeId>,
+    pub entity_scopes: std::collections::HashMap<Entity, ScopeId>,
 }
 
 impl CompositionContext {
@@ -227,7 +227,7 @@ impl CompositionContext {
 }
 
 thread_local! {
-    static COMPOSITION_CTX: RefCell<CompositionContext> = RefCell::new(CompositionContext::new());
+    pub static COMPOSITION_CTX: RefCell<CompositionContext> = RefCell::new(CompositionContext::new());
 }
 
 /// Initialize the composition context for this frame
@@ -288,7 +288,7 @@ pub fn exit_scope() {
 }
 
 /// Register an entity with the current scope
-fn register_entity_scope(entity: Entity, scope_id: ScopeId) {
+pub fn register_entity_scope(entity: Entity, scope_id: ScopeId) {
     COMPOSITION_CTX.with(|ctx| {
         let mut ctx = ctx.borrow_mut();
         ctx.entity_scopes.insert(entity, scope_id);
@@ -351,14 +351,14 @@ pub fn clear_parent_stack() {
 }
 
 /// Push a new parent onto the stack
-fn push_parent(entity: Entity) {
+pub fn push_parent(entity: Entity) {
     COMPOSITION_CTX.with(|ctx| {
         ctx.borrow_mut().parent_stack.push(entity);
     });
 }
 
 /// Pop the current parent from the stack
-fn pop_parent() {
+pub fn pop_parent() {
     COMPOSITION_CTX.with(|ctx| {
         ctx.borrow_mut().parent_stack.pop();
     });
@@ -618,7 +618,7 @@ impl State<i32> {
 
 /// Helper to create an implicit scope for a composable.
 /// Every composable automatically becomes a recomposition boundary.
-fn with_implicit_scope<F, R>(content: F) -> R
+pub fn with_implicit_scope<F, R>(content: F) -> R
 where
     F: FnOnce() -> R,
 {

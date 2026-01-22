@@ -7,6 +7,7 @@ license.workspace = true
 [dependencies]
 becompose_macros = { path = "../becompose_macros" }
 bevy = { workspace = true }
+bevy_material_ui = { git = "https://github.com/edgarhsanchez/bevy_material_ui", branch = "main" }
 generational-box = "0.7"
 
 [dev-dependencies]

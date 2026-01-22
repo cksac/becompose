@@ -50,7 +50,7 @@ impl Modifier for BorderModifier {
     }
 
     fn apply_to_border(&self, border: &mut BorderColor) {
-        *border = BorderColor(self.color);
+        *border = BorderColor::all(self.color);
     }
 
     fn modifier_type(&self) -> ModifierType {

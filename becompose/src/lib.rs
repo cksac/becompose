@@ -120,6 +120,9 @@ pub mod prelude {
         button, column, row, spacer, spacer_sized, text, text_styled,
     };
 
+    // Material UI composables
+    pub use crate::bevy_integration::material_ui;
+
     // Macro
     pub use crate::composable;
 }

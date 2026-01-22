@@ -4,7 +4,7 @@
 //! that hides the complexity of Bevy setup.
 
 use bevy::prelude::*;
-use bevy::window::{Window, WindowPlugin};
+use bevy::window::{Window, WindowPlugin, WindowResolution};
 use std::sync::{Arc, Mutex};
 
 use super::composables::{
@@ -18,8 +18,8 @@ use super::BecomposePlugin;
 #[derive(Clone)]
 pub struct WindowConfig {
     pub title: String,
-    pub width: f32,
-    pub height: f32,
+    pub width: u32,
+    pub height: u32,
     pub resizable: bool,
 }
 
@@ -27,8 +27,8 @@ impl Default for WindowConfig {
     fn default() -> Self {
         Self {
             title: "BECOMPOSE App".to_string(),
-            width: 800.0,
-            height: 600.0,
+            width: 800,
+            height: 600,
             resizable: true,
         }
     }
@@ -42,7 +42,7 @@ impl WindowConfig {
         }
     }
 
-    pub fn with_size(mut self, width: f32, height: f32) -> Self {
+    pub fn with_size(mut self, width: u32, height: u32) -> Self {
         self.width = width;
         self.height = height;
         self
@@ -104,7 +104,7 @@ impl BecomposeApp {
     }
 
     /// Set the window size
-    pub fn size(mut self, width: f32, height: f32) -> Self {
+    pub fn size(mut self, width: u32, height: u32) -> Self {
         self.window_config.width = width;
         self.window_config.height = height;
         self
@@ -134,7 +134,10 @@ impl BecomposeApp {
         app.add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: self.window_config.title,
-                resolution: (self.window_config.width, self.window_config.height).into(),
+                resolution: WindowResolution::new(
+                    self.window_config.width,
+                    self.window_config.height,
+                ),
                 resizable: self.window_config.resizable,
                 ..default()
             }),
@@ -209,7 +212,7 @@ fn incremental_recompose_ui(
     mut commands: Commands,
     content: Option<Res<ContentFn>>,
     roots: Query<Entity, With<CompositionRoot>>,
-    scope_markers: Query<(Entity, &ScopeMarker, Option<&Parent>)>,
+    scope_markers: Query<(Entity, &ScopeMarker, Option<&ChildOf>)>,
     registry: Res<ScopeRegistry>,
 ) {
     // Only proceed if there are dirty scopes
@@ -235,7 +238,7 @@ fn incremental_recompose_ui(
     if full_recompose {
         // Full recomposition: clear everything and rebuild
         for entity in roots.iter() {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).despawn();
         }
 
         // Clear all scope mappings
@@ -275,7 +278,7 @@ fn incremental_recompose_ui(
             // Get the scope's content function
             if let Some(scope_info) = get_scope_info(scope_id) {
                 // Despawn all children of the scope container (preserve the container itself)
-                commands.entity(scope_entity).despawn_descendants();
+                commands.entity(scope_entity).despawn_related::<Children>();
 
                 // Clear scope mapping for this scope
                 clear_scope_mapping(scope_id);

@@ -38,7 +38,7 @@ pub fn sync_composition_to_entities(
     for node_id in removed_node_ids {
         for (entity, bridge) in query.iter() {
             if bridge.composition_id == node_id {
-                commands.entity(entity).despawn_recursive();
+                commands.entity(entity).despawn();
                 break;
             }
         }
