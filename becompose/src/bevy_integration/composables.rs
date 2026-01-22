@@ -77,6 +77,40 @@ pub struct ScopeInfo {
     pub root_entity: Option<Entity>,
 }
 
+/// Registry of scope owners for state lifetime management
+/// Each scope has its own Owner - when the scope is destroyed, all states created
+/// within that scope are automatically freed.
+static SCOPE_OWNERS: RwLock<Option<std::collections::HashMap<ScopeId, Owner<SyncStorage>>>> =
+    RwLock::new(None);
+
+/// Get or create an owner for a scope
+fn get_or_create_scope_owner(scope_id: ScopeId) -> Owner<SyncStorage> {
+    {
+        let guard = SCOPE_OWNERS.read().unwrap();
+        if let Some(map) = guard.as_ref() {
+            if let Some(owner) = map.get(&scope_id) {
+                return owner.clone();
+            }
+        }
+    }
+    let mut guard = SCOPE_OWNERS.write().unwrap();
+    if guard.is_none() {
+        *guard = Some(std::collections::HashMap::new());
+    }
+    let map = guard.as_mut().unwrap();
+    map.entry(scope_id)
+        .or_insert_with(SyncStorage::owner)
+        .clone()
+}
+
+/// Drop the owner for a scope, freeing all states created within it
+fn drop_scope_owner(scope_id: ScopeId) {
+    let mut guard = SCOPE_OWNERS.write().unwrap();
+    if let Some(map) = guard.as_mut() {
+        map.remove(&scope_id);
+    }
+}
+
 /// Register a scope with its content function
 pub fn register_scope(
     scope_id: ScopeId,
@@ -116,7 +150,12 @@ pub fn get_scope_info(scope_id: ScopeId) -> Option<ScopeInfo> {
 }
 
 /// Unregister a scope (for cleanup)
+/// This also drops the scope's Owner, freeing all states created within the scope.
 pub fn unregister_scope(scope_id: ScopeId) {
+    // First drop the scope's owner to free all states created in this scope
+    drop_scope_owner(scope_id);
+
+    // Then remove the scope from the registry
     let mut guard = SCOPE_REGISTRY.write().unwrap();
     if let Some(map) = guard.as_mut() {
         map.remove(&scope_id);
@@ -377,29 +416,40 @@ fn with_commands<R>(f: impl FnOnce(&mut Commands) -> R) -> R {
 // State Owner Management (generational-box)
 // ============================================================================
 
-/// Global owner that manages the lifetime of all State values.
-/// Using RwLock for thread-safety since SyncStorage requires Send+Sync.
-static STATE_OWNER: RwLock<Option<Owner<SyncStorage>>> = RwLock::new(None);
+/// Global owner that manages the lifetime of State values created outside any scope.
+/// States created at the app level (before any composable runs) use this owner.
+static GLOBAL_STATE_OWNER: RwLock<Option<Owner<SyncStorage>>> = RwLock::new(None);
 
-/// Initialize the global state owner. Called once at app startup.
-fn ensure_state_owner() -> Owner<SyncStorage> {
+/// Get the global state owner for app-level states
+fn get_global_owner() -> Owner<SyncStorage> {
     {
-        let guard = STATE_OWNER.read().unwrap();
+        let guard = GLOBAL_STATE_OWNER.read().unwrap();
         if let Some(ref owner) = *guard {
             return owner.clone();
         }
     }
-    let mut guard = STATE_OWNER.write().unwrap();
+    let mut guard = GLOBAL_STATE_OWNER.write().unwrap();
     if guard.is_none() {
         *guard = Some(SyncStorage::owner());
     }
     guard.as_ref().unwrap().clone()
 }
 
-/// Create a new State value using the global owner.
-/// The state will be valid for the lifetime of the application.
+/// Create a new State value.
+/// - If called inside a composable scope, the state is tied to that scope's lifetime
+/// - If called outside any scope (app level), the state lives for the app's lifetime
 fn create_state_box<T: Send + Sync + 'static>(value: T) -> GenerationalBox<T, SyncStorage> {
-    let owner = ensure_state_owner();
+    // Check if we're inside a composition scope
+    let scope_id = current_scope_id();
+
+    let owner = if let Some(scope_id) = scope_id {
+        // Use the scope's owner - state will be freed when scope is destroyed
+        get_or_create_scope_owner(scope_id)
+    } else {
+        // No scope - use global owner (app-level state)
+        get_global_owner()
+    };
+
     owner.insert(value)
 }
 
@@ -420,17 +470,25 @@ struct StateInner<T> {
 /// State is `Copy` thanks to generational-box, so you don't need to clone it!
 /// Just pass it around freely.
 ///
+/// ## Lifetime Management
+/// - **Inside a composable**: State is tied to the composable's scope. When the scope
+///   is destroyed (e.g., during recomposition), all states created within it are freed.
+/// - **Outside composables (app level)**: State lives for the entire application lifetime.
+///
+/// ## Subscription & Recomposition
 /// State tracks which composition scope(s) read from it and only marks those
 /// scopes as dirty when the value changes, enabling granular recomposition.
 ///
 /// # Example
 /// ```ignore
+/// // App-level state (lives forever)
 /// let count = State::new(0);
 ///
-/// // No need for count.clone()! State is Copy!
-/// Button("Increment", move || count.set(count.get() + 1));
-///
-/// Text(format!("Count: {}", count.get()));
+/// run_app("My App", move || {
+///     // No need for count.clone()! State is Copy!
+///     Button("Increment", move || count.set(count.get() + 1));
+///     Text(format!("Count: {}", count.get()));
+/// });
 /// ```
 pub struct State<T: 'static> {
     inner: GenerationalBox<RwLock<StateInner<T>>, SyncStorage>,
