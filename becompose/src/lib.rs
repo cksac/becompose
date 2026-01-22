@@ -31,12 +31,12 @@
 //! }
 //! ```
 
-pub mod composition;
-pub mod state;
-pub mod modifier;
-pub mod layout;
-pub mod components;
 pub mod bevy_integration;
+pub mod components;
+pub mod composition;
+pub mod layout;
+pub mod modifier;
+pub mod state;
 
 /// Re-export the composable macro
 pub use becompose_macros::composable;
@@ -53,62 +53,71 @@ pub mod prelude {
 
     // State management
     pub use crate::state::{
-        MutableState, DerivedState, mutable_state_of, derived_state_of,
-        remember, remember_mutable_state,
-        launched_effect, disposable_effect, side_effect, DisposableEffect,
+        derived_state_of, disposable_effect, launched_effect, mutable_state_of, remember,
+        remember_mutable_state, side_effect, DerivedState, DisposableEffect, MutableState,
     };
 
     // Modifiers
     pub use crate::modifier::{
-        Modifier, Modifiers, ModifierType,
-        PaddingModifier, SizeModifier, FillModifier, WeightModifier,
-        BackgroundModifier, BorderModifier,
-        ClickableModifier,
+        BackgroundModifier, BorderModifier, ClickableModifier, FillModifier, Modifier,
+        ModifierType, Modifiers, PaddingModifier, SizeModifier, WeightModifier,
     };
 
     // Layout
     pub use crate::layout::{
-        Constraints, MeasureResult,
-        Arrangement, HorizontalArrangement, VerticalArrangement,
-        HorizontalAlignment, VerticalAlignment, Alignment2D,
-        ColumnLayout, RowLayout, BoxLayout,
+        Alignment2D, Arrangement, BoxLayout, ColumnLayout, Constraints, HorizontalAlignment,
+        HorizontalArrangement, MeasureResult, RowLayout, VerticalAlignment, VerticalArrangement,
     };
 
     // Components
     pub use crate::components::{
-        TextStyle, TextConfig, TextNode,
-        ButtonConfig, ButtonNode, Clickable, OnClick,
-        ImageConfig, ImageNode,
-        SpacerConfig, SpacerNode,
-        ColumnConfig, ColumnNode, RowConfig, RowNode, BoxConfig, BoxNode,
-        CardConfig, CardNode,
+        BoxConfig, BoxNode, ButtonConfig, ButtonNode, CardConfig, CardNode, Clickable,
+        ColumnConfig, ColumnNode, ImageConfig, ImageNode, OnClick, RowConfig, RowNode,
+        SpacerConfig, SpacerNode, TextConfig, TextNode, TextStyle,
     };
 
     // Bevy integration - core
     pub use crate::bevy_integration::{
-        BecomposePlugin, UiRoot, CompositionBridge,
-        UiBuilder, UiElement, BecomposeCommands,
-        TextElement, ButtonElement, ColumnElement, RowElement, BoxElement, SpacerElement,
+        invalidate,
+        run_app,
+        run_app_with_config,
         // App
-        BecomposeApp, WindowConfig, run_app, run_app_with_config, invalidate,
+        BecomposeApp,
+        BecomposeCommands,
+        BecomposePlugin,
+        Box,
+        BoxElement,
+        Button,
+        ButtonElement,
+        Column,
+        ColumnElement,
+        CompositionBridge,
+        FixedSpacer,
+        ForEach,
+        If,
+        IfElse,
+        Row,
+        RowElement,
+        Scope,
+        // Scope-based recomposition
+        ScopeId,
+        Spacer,
+        SpacerElement,
         // Reactive State
         State,
-        // Scope-based recomposition
-        ScopeId, Scope, ScopedState,
+        Surface,
         // Composable functions (Jetpack Compose style)
         Text,
-        Button,
-        Column,
-        Row,
-        Box,
-        Surface,
-        Spacer, FixedSpacer,
-        ForEach, If, IfElse,
+        TextElement,
+        UiBuilder,
+        UiElement,
+        UiRoot,
+        WindowConfig,
     };
 
     // Re-export convenience text/button/etc functions from ui_builder for backwards compat
     pub use crate::bevy_integration::{
-        text, text_styled, button, column, row, spacer, spacer_sized,
+        button, column, row, spacer, spacer_sized, text, text_styled,
     };
 
     // Macro

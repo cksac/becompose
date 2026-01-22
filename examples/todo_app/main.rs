@@ -30,9 +30,21 @@ impl AppState {
     fn new() -> Self {
         Self {
             todos: State::new(vec![
-                Todo { id: 1, title: "Learn BECOMPOSE".to_string(), completed: false },
-                Todo { id: 2, title: "Build awesome UIs".to_string(), completed: false },
-                Todo { id: 3, title: "Have fun with Bevy".to_string(), completed: true },
+                Todo {
+                    id: 1,
+                    title: "Learn BECOMPOSE".to_string(),
+                    completed: false,
+                },
+                Todo {
+                    id: 2,
+                    title: "Build awesome UIs".to_string(),
+                    completed: false,
+                },
+                Todo {
+                    id: 3,
+                    title: "Have fun with Bevy".to_string(),
+                    completed: true,
+                },
             ]),
             next_id: State::new(4),
         }
@@ -70,7 +82,7 @@ impl AppState {
 
 fn main() {
     let state = AppState::new();
-    
+
     run_app("BECOMPOSE - Todo App", move || {
         // Call the main app composable
         TodoApp(state.clone());
@@ -78,80 +90,100 @@ fn main() {
 }
 
 /// Main TodoApp composable
-/// 
+///
 /// This function composes the entire todo application UI.
 /// Like in Jetpack Compose, it's a function that takes state
 /// and emits UI by calling other composable functions.
 /// No cx/commands needed!
 fn TodoApp(state: AppState) {
-    let state_for_add = state.clone();
-    
+    let state_for_surface = state.clone();
+
     // Surface accepts a single background modifier directly
-    Surface(Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.1, 0.1, 0.15))), || {
-        Column(
-            Modifiers::new()
-                .fill_max_size()
-                .padding(24.0)
-                .vertical_arrangement(VerticalArrangement::Top)
-                .horizontal_alignment(HorizontalAlignment::Start)
-                .row_gap(16.0),
-            || {
-                // Title
-                Text("📝 Todo List", TextStyle::title().with_color(Color::WHITE));
-                
-                // Add button - single modifier usage
-                Button(
-                    "+ Add New Todo",
-                    Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.3, 0.6, 0.9))),
-                    move || {
-                        state_for_add.add_todo();
-                    }
-                );
-                
-                FixedSpacer(8.0);
-                
-                // Todo list
-                TodoList(state);
-            }
-        );
-    });
+    Surface(
+        Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.1, 0.1, 0.15))),
+        move || {
+            let state = state_for_surface.clone();
+            let state_for_add = state.clone();
+            let state_for_list = state.clone();
+
+            Column(
+                Modifiers::new()
+                    .fill_max_size()
+                    .padding(24.0)
+                    .vertical_arrangement(VerticalArrangement::Top)
+                    .horizontal_alignment(HorizontalAlignment::Start)
+                    .row_gap(16.0),
+                move || {
+                    let state_for_add = state_for_add.clone();
+                    let state_for_list = state_for_list.clone();
+
+                    // Title
+                    Text("📝 Todo List", TextStyle::title().with_color(Color::WHITE));
+
+                    // Add button - single modifier usage
+                    let add_state = state_for_add.clone();
+                    Button(
+                        "+ Add New Todo",
+                        Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.3, 0.6, 0.9))),
+                        move || {
+                            add_state.add_todo();
+                        },
+                    );
+
+                    FixedSpacer(8.0);
+
+                    // Todo list
+                    TodoList(state_for_list);
+                },
+            );
+        },
+    );
 }
 
 /// TodoList composable - renders the list of todos
 fn TodoList(state: AppState) {
     let todos = state.todos.get();
-    
-    Column(Modifiers::new().vertical_arrangement(VerticalArrangement::Top).horizontal_alignment(HorizontalAlignment::Start), || {
-        // ForEach iterates and composes content for each item
-        ForEach(&todos, |todo| {
-            TodoItem(todo, state.clone());
-        });
-    });
+    let state_for_column = state.clone();
+
+    Column(
+        Modifiers::new()
+            .vertical_arrangement(VerticalArrangement::Top)
+            .horizontal_alignment(HorizontalAlignment::Start),
+        move || {
+            let state = state_for_column.clone();
+            let todos = todos.clone();
+
+            // ForEach iterates and composes content for each item
+            ForEach(&todos, |todo| {
+                TodoItem(todo, state.clone());
+            });
+        },
+    );
 }
 
 /// TodoItem composable - renders a single todo item
-/// 
+///
 /// This is a reusable composable that can be composed anywhere.
 fn TodoItem(todo: &Todo, state: AppState) {
     let todo_id = todo.id;
     let is_completed = todo.completed;
     let title = todo.title.clone();
-    
+
     let state_toggle = state.clone();
     let state_delete = state;
-    
+
     let bg_color = if is_completed {
         Color::srgb(0.15, 0.2, 0.15)
     } else {
         Color::srgb(0.2, 0.2, 0.25)
     };
-    
+
     let text_color = if is_completed {
         Color::srgb(0.5, 0.5, 0.5)
     } else {
         Color::WHITE
     };
-    
+
     Row(
         Modifiers::new()
             .fill_max_width()
@@ -160,44 +192,56 @@ fn TodoItem(todo: &Todo, state: AppState) {
             .horizontal_arrangement(HorizontalArrangement::SpaceBetween)
             .vertical_alignment(VerticalAlignment::Center)
             .column_gap(12.0),
-        || {
+        move || {
+            let state_toggle = state_toggle.clone();
+            let state_delete = state_delete.clone();
+            let title = title.clone();
+
             // Left side: checkbox + text
-            Row(Modifiers::new().horizontal_arrangement(HorizontalArrangement::Start).vertical_alignment(VerticalAlignment::Center), || {
-                // Checkbox button
-                // Checkbox uses a size modifier plus a background modifier inside a chain
-                Button(
-                    if is_completed { "✓" } else { "○" },
-                    Modifiers::new()
-                        .then(SizeModifier::fixed(28.0, 28.0))
-                        .then(BackgroundModifier::new(if is_completed {
-                            Color::srgb(0.3, 0.7, 0.4)
-                        } else {
-                            Color::srgb(0.3, 0.3, 0.35)
-                        })),
-                    move || {
-                        state_toggle.toggle_todo(todo_id);
-                    }
-                );
-                
-                FixedSpacer(12.0);
-                
-                // Todo text
-                let display_text = if is_completed {
-                    format!("~{}~", title)
-                } else {
-                    title.clone()
-                };
-                Text(display_text, TextStyle::body().with_color(text_color));
-            });
-            
+            Row(
+                Modifiers::new()
+                    .horizontal_arrangement(HorizontalArrangement::Start)
+                    .vertical_alignment(VerticalAlignment::Center),
+                move || {
+                    let state_toggle = state_toggle.clone();
+                    let title = title.clone();
+
+                    // Checkbox button
+                    // Checkbox uses a size modifier plus a background modifier inside a chain
+                    Button(
+                        if is_completed { "✓" } else { "○" },
+                        Modifiers::new().then(SizeModifier::fixed(28.0, 28.0)).then(
+                            BackgroundModifier::new(if is_completed {
+                                Color::srgb(0.3, 0.7, 0.4)
+                            } else {
+                                Color::srgb(0.3, 0.3, 0.35)
+                            }),
+                        ),
+                        move || {
+                            state_toggle.toggle_todo(todo_id);
+                        },
+                    );
+
+                    FixedSpacer(12.0);
+
+                    // Todo text
+                    let display_text = if is_completed {
+                        format!("~{}~", title)
+                    } else {
+                        title.clone()
+                    };
+                    Text(display_text, TextStyle::body().with_color(text_color));
+                },
+            );
+
             // Delete button (single background modifier)
             Button(
                 "×",
                 Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.7, 0.3, 0.3))),
                 move || {
                     state_delete.delete_todo(todo_id);
-                }
+                },
             );
-        }
+        },
     );
 }

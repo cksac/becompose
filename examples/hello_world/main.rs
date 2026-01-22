@@ -18,36 +18,46 @@ fn main() {
 }
 
 /// The root App composable
-/// 
+///
 /// Like Jetpack Compose, this is just a function that emits UI
 /// by calling other composable functions. No cx/commands needed!
 fn App() {
     // Surface is the root container (like Scaffold in Compose)
     // Here we pass a single modifier directly (no need to construct a chain)
-    Surface(Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.1, 0.1, 0.15))), || {
-        // Column arranges children vertically
-        Column(
-            Modifiers::new()
-                .fill_max_size()
-                .vertical_arrangement(VerticalArrangement::Center)
-                .horizontal_alignment(HorizontalAlignment::Center)
-                .row_gap(16.0),
-            || {
-                // Composable function calls - just like Jetpack Compose!
-                Text("Hello, BECOMPOSE! 🎮", TextStyle::title().with_color(Color::WHITE));
-                
-                Text(
-                    "Welcome to declarative UI in Bevy",
-                    TextStyle::body().with_color(Color::srgb(0.7, 0.7, 0.7))
-                );
-                
-                FixedSpacer(24.0);
-                
-                // Simple button: demonstrate passing a single modifier (padding) directly
-                Button("Click me!", Modifiers::new().then(PaddingModifier::all(12.0)), || {
-                    println!("Button clicked!");
-                });
-            }
-        );
-    });
+    Surface(
+        Modifiers::new().then(BackgroundModifier::new(Color::srgb(0.1, 0.1, 0.15))),
+        || {
+            // Column arranges children vertically
+            Column(
+                Modifiers::new()
+                    .fill_max_size()
+                    .vertical_arrangement(VerticalArrangement::Center)
+                    .horizontal_alignment(HorizontalAlignment::Center)
+                    .row_gap(16.0),
+                || {
+                    // Composable function calls - just like Jetpack Compose!
+                    Text(
+                        "Hello, BECOMPOSE! 🎮",
+                        TextStyle::title().with_color(Color::WHITE),
+                    );
+
+                    Text(
+                        "Welcome to declarative UI in Bevy",
+                        TextStyle::body().with_color(Color::srgb(0.7, 0.7, 0.7)),
+                    );
+
+                    FixedSpacer(24.0);
+
+                    // Simple button: demonstrate passing a single modifier (padding) directly
+                    Button(
+                        "Click me!",
+                        Modifiers::new().then(PaddingModifier::all(12.0)),
+                        || {
+                            println!("Button clicked!");
+                        },
+                    );
+                },
+            );
+        },
+    );
 }

@@ -2,8 +2,8 @@
 //!
 //! Handles the recomposition process when state changes.
 
-use bevy::prelude::*;
 use crate::composition::{CompositionId, CompositionTree};
+use bevy::prelude::*;
 
 /// Dirty flags for tracking what needs updating
 #[derive(Default, Resource)]
@@ -70,7 +70,7 @@ pub fn process_recompositions(tree: &mut CompositionTree, dirty: &mut DirtyFlags
 fn get_node_depth(tree: &CompositionTree, id: CompositionId) -> usize {
     let mut depth = 0;
     let mut current = id;
-    
+
     while let Some(node) = tree.get(current) {
         if let Some(parent) = node.parent {
             depth += 1;
@@ -79,6 +79,6 @@ fn get_node_depth(tree: &CompositionTree, id: CompositionId) -> usize {
             break;
         }
     }
-    
+
     depth
 }

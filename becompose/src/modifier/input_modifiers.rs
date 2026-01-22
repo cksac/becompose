@@ -2,9 +2,9 @@
 //!
 //! Modifiers that handle user interaction: clickable, draggable.
 
-use std::sync::Arc;
 use super::{Modifier, ModifierType};
 use bevy::prelude::*;
+use std::sync::Arc;
 
 /// Click handler type
 pub type ClickHandler = Arc<dyn Fn() + Send + Sync>;

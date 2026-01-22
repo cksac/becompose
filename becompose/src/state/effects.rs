@@ -42,10 +42,11 @@ where
 {
     let ctx = CompositionContext::current();
     let prev_key: Option<K> = ctx.state_manager().remember(|| None);
-    
+
     if prev_key.as_ref() != Some(&key) {
         // Key changed, run effect
-        ctx.state_manager().update(ctx.state_manager().current_index() - 1, Some(key));
+        ctx.state_manager()
+            .update(ctx.state_manager().current_index() - 1, Some(key));
         effect();
     }
 }
@@ -58,9 +59,10 @@ where
 {
     let ctx = CompositionContext::current();
     let prev_key: Option<K> = ctx.state_manager().remember(|| None);
-    
+
     if prev_key.as_ref() != Some(&key) {
-        ctx.state_manager().update(ctx.state_manager().current_index() - 1, Some(key));
+        ctx.state_manager()
+            .update(ctx.state_manager().current_index() - 1, Some(key));
         effect()
     } else {
         DisposableEffect::new()

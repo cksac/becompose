@@ -2,9 +2,9 @@
 //!
 //! Column, Row, and Box composables.
 
-use bevy::prelude::*;
-use crate::layout::{ColumnLayout, RowLayout, BoxLayout};
+use crate::layout::{BoxLayout, ColumnLayout, RowLayout};
 use crate::modifier::Modifiers;
+use bevy::prelude::*;
 
 /// Configuration for a Column layout
 #[derive(Debug, Clone, Default)]

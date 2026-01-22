@@ -20,11 +20,13 @@ pub fn sync_composition_to_entities(
 ) {
     // Collect new node IDs first
     let new_node_ids: Vec<_> = tree.new_nodes.drain(..).collect();
-    
+
     // Handle new nodes - spawn entities
     for node_id in new_node_ids {
         commands.spawn((
-            CompositionBridge { composition_id: node_id },
+            CompositionBridge {
+                composition_id: node_id,
+            },
             Node::default(),
         ));
     }

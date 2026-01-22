@@ -2,9 +2,9 @@
 //!
 //! Clickable button composable.
 
+use crate::modifier::Modifiers;
 use bevy::prelude::*;
 use std::sync::Arc;
-use crate::modifier::Modifiers;
 
 /// Click handler type
 pub type OnClick = Arc<dyn Fn() + Send + Sync>;

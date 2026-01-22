@@ -2,8 +2,8 @@
 //!
 //! Image display composable.
 
-use bevy::prelude::*;
 use crate::modifier::Modifiers;
+use bevy::prelude::*;
 
 /// Configuration for an Image node
 #[derive(Debug, Clone)]

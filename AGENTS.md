@@ -33,7 +33,7 @@ cargo fmt
 - describe the design using Rust Struct and Trait to show integration between components in the doc
 - use mermaid for graph, i.e. sequence diagram, flow chart, etc.
 - Run cargo test and cargo run after finsih implementation
-- Fix the root cause instead of symptoms
+- Fix the root cause instead of fix surface symptoms, indentify the root cause and tackle it.
 - Don't use //TODO, use todo!("WAHT TO BE DONE")
 - Follow Rust API naming convention https://rust-lang.github.io/api-guidelines/naming.html
 - Don't implment a simplfied version for simplicity, implmentation should repect to the requirement

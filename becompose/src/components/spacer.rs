@@ -2,8 +2,8 @@
 //!
 //! Flexible space composable.
 
-use bevy::prelude::*;
 use crate::modifier::Modifiers;
+use bevy::prelude::*;
 
 /// Configuration for a Spacer
 #[derive(Debug, Clone, Default)]

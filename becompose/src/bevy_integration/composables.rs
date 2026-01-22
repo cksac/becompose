@@ -1,7 +1,7 @@
 //! Composable Functions for BECOMPOSE
 //!
 //! This module provides Jetpack Compose-style composable functions for building UIs.
-//! 
+//!
 //! The key principles are:
 //! 1. **Composable functions** emit UI by calling other composable functions
 //! 2. **Closures for content** - similar to Kotlin's trailing lambdas
@@ -24,11 +24,11 @@
 use bevy::prelude::*;
 use std::cell::RefCell;
 use std::collections::HashSet;
-use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, RwLock};
 
-use crate::modifier::Modifiers;
 use crate::components::TextStyle;
+use crate::modifier::Modifiers;
 
 pub use super::app::CompositionRoot;
 
@@ -45,7 +45,7 @@ impl ScopeId {
         static COUNTER: AtomicU64 = AtomicU64::new(1);
         Self(COUNTER.fetch_add(1, Ordering::SeqCst))
     }
-    
+
     /// Root scope ID (always 0)
     pub fn root() -> Self {
         Self(0)
@@ -62,7 +62,8 @@ impl Default for ScopeId {
 pub type ScopedContentFn = Arc<dyn Fn() + Send + Sync>;
 
 /// Registry of scope content functions for granular recomposition
-static SCOPE_REGISTRY: RwLock<Option<std::collections::HashMap<ScopeId, ScopeInfo>>> = RwLock::new(None);
+static SCOPE_REGISTRY: RwLock<Option<std::collections::HashMap<ScopeId, ScopeInfo>>> =
+    RwLock::new(None);
 
 /// Information about a registered scope
 #[derive(Clone)]
@@ -76,17 +77,24 @@ pub struct ScopeInfo {
 }
 
 /// Register a scope with its content function
-pub fn register_scope(scope_id: ScopeId, content_fn: ScopedContentFn, parent_scope: Option<ScopeId>) {
+pub fn register_scope(
+    scope_id: ScopeId,
+    content_fn: ScopedContentFn,
+    parent_scope: Option<ScopeId>,
+) {
     let mut guard = SCOPE_REGISTRY.write().unwrap();
     if guard.is_none() {
         *guard = Some(std::collections::HashMap::new());
     }
     if let Some(map) = guard.as_mut() {
-        map.insert(scope_id, ScopeInfo {
-            content_fn,
-            parent_scope,
-            root_entity: None,
-        });
+        map.insert(
+            scope_id,
+            ScopeInfo {
+                content_fn,
+                parent_scope,
+                root_entity: None,
+            },
+        );
     }
 }
 
@@ -190,7 +198,10 @@ pub fn begin_composition(commands: &mut Commands) {
         ctx.parent_stack.clear();
         // Note: Keep scope_entities and entity_scopes for incremental updates
         // SAFETY: We ensure this pointer is only valid during composition
-        ctx.commands = commands as *mut Commands as *mut Commands<'static, 'static>;
+        #[allow(clippy::unnecessary_cast)]
+        {
+            ctx.commands = commands as *mut Commands as *mut Commands<'static, 'static>;
+        }
     });
 }
 
@@ -200,7 +211,10 @@ pub fn begin_incremental_composition(commands: &mut Commands) {
         let mut ctx = ctx.borrow_mut();
         ctx.parent_stack.clear();
         ctx.scope_stack.clear();
-        ctx.commands = commands as *mut Commands as *mut Commands<'static, 'static>;
+        #[allow(clippy::unnecessary_cast)]
+        {
+            ctx.commands = commands as *mut Commands as *mut Commands<'static, 'static>;
+        }
     });
 }
 
@@ -216,9 +230,7 @@ pub fn end_composition() {
 
 /// Get the current scope ID (for state tracking)
 pub fn current_scope_id() -> Option<ScopeId> {
-    COMPOSITION_CTX.with(|ctx| {
-        ctx.borrow().scope_stack.last().copied()
-    })
+    COMPOSITION_CTX.with(|ctx| ctx.borrow().scope_stack.last().copied())
 }
 
 /// Enter a new scope for composition tracking
@@ -241,7 +253,10 @@ fn register_entity_scope(entity: Entity, scope_id: ScopeId) {
         let mut ctx = ctx.borrow_mut();
         ctx.entity_scopes.insert(entity, scope_id);
         // Track all entities in this scope
-        ctx.scope_all_entities.entry(scope_id).or_default().push(entity);
+        ctx.scope_all_entities
+            .entry(scope_id)
+            .or_default()
+            .push(entity);
         // Only set scope root if not already set
         ctx.scope_root_entities.entry(scope_id).or_insert(entity);
     });
@@ -249,15 +264,17 @@ fn register_entity_scope(entity: Entity, scope_id: ScopeId) {
 
 /// Get the root entity for a scope
 pub fn get_scope_root_entity(scope_id: ScopeId) -> Option<Entity> {
-    COMPOSITION_CTX.with(|ctx| {
-        ctx.borrow().scope_root_entities.get(&scope_id).copied()
-    })
+    COMPOSITION_CTX.with(|ctx| ctx.borrow().scope_root_entities.get(&scope_id).copied())
 }
 
 /// Get all entities belonging to a scope
 pub fn get_scope_entities(scope_id: ScopeId) -> Vec<Entity> {
     COMPOSITION_CTX.with(|ctx| {
-        ctx.borrow().scope_all_entities.get(&scope_id).cloned().unwrap_or_default()
+        ctx.borrow()
+            .scope_all_entities
+            .get(&scope_id)
+            .cloned()
+            .unwrap_or_default()
     })
 }
 
@@ -276,9 +293,7 @@ pub fn clear_scope_mapping(scope_id: ScopeId) {
 
 /// Get the parent entity for inserting scope content
 pub fn get_current_parent() -> Option<Entity> {
-    COMPOSITION_CTX.with(|ctx| {
-        ctx.borrow().parent_stack.last().copied()
-    })
+    COMPOSITION_CTX.with(|ctx| ctx.borrow().parent_stack.last().copied())
 }
 
 /// Set parent for scope recomposition
@@ -316,7 +331,7 @@ fn spawn_child(bundle: impl Bundle) -> Entity {
         // SAFETY: We ensure commands is valid during composition
         let commands = unsafe { &mut *ctx.commands };
         let entity = commands.spawn(bundle).id();
-        
+
         // Track which scope this entity belongs to
         if let Some(&scope_id) = ctx.scope_stack.last() {
             // Release borrow before calling register_entity_scope
@@ -335,7 +350,7 @@ fn spawn_child(bundle: impl Bundle) -> Entity {
             }
             return entity;
         }
-        
+
         if let Some(parent) = ctx.parent_stack.last() {
             commands.entity(*parent).add_child(entity);
         } else {
@@ -363,19 +378,19 @@ fn with_commands<R>(f: impl FnOnce(&mut Commands) -> R) -> R {
 
 /// Reactive state that automatically triggers recomposition when modified.
 /// Similar to MutableState in Jetpack Compose.
-/// 
+///
 /// State tracks which composition scope(s) read from it and only marks those
 /// scopes as dirty when the value changes, enabling granular recomposition.
-/// 
+///
 /// # Example
 /// ```ignore
 /// let count = State::new(0);
-/// 
+///
 /// Button("Increment", {
 ///     let count = count.clone();
 ///     move || count.set(count.get() + 1)
 /// });
-/// 
+///
 /// Text(format!("Count: {}", count.get()));
 /// ```
 #[derive(Clone)]
@@ -399,7 +414,7 @@ impl<T: Clone + Send + Sync + 'static> State<T> {
             }),
         }
     }
-    
+
     /// Get the current value and subscribe the current scope
     pub fn get(&self) -> T {
         // Subscribe current scope to this state
@@ -409,18 +424,18 @@ impl<T: Clone + Send + Sync + 'static> State<T> {
         }
         self.inner.value.read().unwrap().clone()
     }
-    
+
     /// Get the value without subscribing (useful for event handlers)
     pub fn get_untracked(&self) -> T {
         self.inner.value.read().unwrap().clone()
     }
-    
+
     /// Set a new value and trigger recomposition of subscribed scopes
     pub fn set(&self, value: T) {
         *self.inner.value.write().unwrap() = value;
         self.notify_subscribers();
     }
-    
+
     /// Update the value using a function and trigger recomposition
     pub fn update(&self, f: impl FnOnce(&mut T)) {
         {
@@ -429,12 +444,12 @@ impl<T: Clone + Send + Sync + 'static> State<T> {
         }
         self.notify_subscribers();
     }
-    
+
     /// Modify without triggering recomposition (for batched updates)
     pub fn set_silent(&self, value: T) {
         *self.inner.value.write().unwrap() = value;
     }
-    
+
     /// Notify all subscribed scopes that this state changed
     fn notify_subscribers(&self) {
         let subscribers = self.inner.subscribers.read().unwrap();
@@ -447,7 +462,7 @@ impl<T: Clone + Send + Sync + 'static> State<T> {
             }
         }
     }
-    
+
     /// Clear subscriber list (called during recomposition)
     pub fn clear_subscribers(&self) {
         self.inner.subscribers.write().unwrap().clear();
@@ -465,7 +480,7 @@ impl State<i32> {
     pub fn increment(&self) {
         self.update(|v| *v += 1);
     }
-    
+
     pub fn decrement(&self) {
         self.update(|v| *v -= 1);
     }
@@ -475,72 +490,144 @@ impl State<i32> {
 // Core Composable Functions
 // ============================================================================
 
+/// Helper to create an implicit scope for a composable.
+/// Every composable automatically becomes a recomposition boundary.
+fn with_implicit_scope<F, R>(content: F) -> R
+where
+    F: FnOnce() -> R,
+{
+    let scope_id = ScopeId::new();
+    let parent_scope = current_scope_id();
+
+    // Enter this scope
+    enter_scope(scope_id);
+
+    // Execute content
+    let result = content();
+
+    // Exit scope
+    exit_scope();
+
+    // Note: We don't register the scope here since leaf composables
+    // don't have stored content functions. For granular updates,
+    // the parent scope will be marked dirty instead.
+    let _ = parent_scope; // silence unused warning
+
+    result
+}
+
+/// Helper to create a scoped container composable with stored content function.
+/// This enables granular recomposition - only this subtree rebuilds when its state changes.
+fn scoped_container<F>(container_entity: Entity, content: F)
+where
+    F: Fn() + Send + Sync + 'static,
+{
+    let scope_id = ScopeId::new();
+    let parent_scope = current_scope_id();
+
+    // Add scope marker to the container
+    COMPOSITION_CTX.with(|ctx| {
+        let ctx = ctx.borrow();
+        let commands = unsafe { &mut *ctx.commands };
+        commands
+            .entity(container_entity)
+            .insert(ScopeMarker(scope_id));
+    });
+
+    // Register the scope with its content function for later recomposition
+    let content_fn: ScopedContentFn = Arc::new(content);
+    register_scope(scope_id, content_fn.clone(), parent_scope);
+    set_scope_root_entity(scope_id, container_entity);
+
+    // Enter scope and compose content
+    push_parent(container_entity);
+    enter_scope(scope_id);
+
+    content_fn();
+
+    exit_scope();
+    pop_parent();
+}
+
 // Removed unstyled `Text` composable. Use the styled `Text(content, style: TextStyle)` instead.
 
 /// Text composable with styling
-/// 
+///
+/// Text is automatically scoped - state reads inside will only trigger
+/// recomposition of this text element's parent scope.
+///
 /// # Example
 /// ```ignore
 /// Text("Hello!", TextStyle::title().with_color(Color::WHITE));
 /// ```
 pub fn Text(content: impl Into<String>, style: TextStyle) {
-    let content = content.into();
-    spawn_child((
-        bevy::prelude::Text::new(content),
-        TextFont {
-            font_size: style.font_size,
-            ..default()
-        },
-        TextColor(style.color),
-    ));
-} 
+    with_implicit_scope(|| {
+        let content = content.into();
+        spawn_child((
+            bevy::prelude::Text::new(content),
+            TextFont {
+                font_size: style.font_size,
+                ..default()
+            },
+            TextColor(style.color),
+        ));
+    });
+}
 
 // Removed unstyled `Button`. Use the styled `Button(label, modifier, on_click)` with a `ModifierChain` instead.
 
 /// Button composable with modifier
-/// 
+///
+/// Button is automatically scoped - changes to state it reads only rebuild this button.
+///
 /// # Example
 /// ```ignore
 /// Button("Submit", Modifier().background(Color::BLUE), || submit());
 /// ```
-pub fn Button<F>(
-    label: impl Into<String>,
-    modifier: Modifiers,
-    on_click: F,
-)
+pub fn Button<F>(label: impl Into<String>, modifier: Modifiers, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
-{ 
-    let label = label.into();
-    let on_click = Arc::new(on_click);
-    
-    let mut node = Node {
-        padding: UiRect::axes(Val::Px(16.0), Val::Px(8.0)),
-        justify_content: JustifyContent::Center,
-        align_items: AlignItems::Center,
-        ..default()
-    };
-    modifier.apply_to_node(&mut node);
-    
-    let mut bg = BackgroundColor(Color::srgb(0.25, 0.25, 0.3));
-    modifier.apply_to_background(&mut bg);
-    
-    let button = spawn_child((
-        bevy::prelude::Button,
-        node,
-        bg,
-        BorderRadius::all(Val::Px(4.0)),
-        crate::components::Clickable { on_click },
-    ));
-    
-    push_parent(button);
-    // Use body style by default for button labels
-    Text(label, TextStyle::body());
-    pop_parent();
-} 
+{
+    with_implicit_scope(|| {
+        let label = label.into();
+        let on_click = Arc::new(on_click);
+
+        let mut node = Node {
+            padding: UiRect::axes(Val::Px(16.0), Val::Px(8.0)),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        };
+        modifier.apply_to_node(&mut node);
+
+        let mut bg = BackgroundColor(Color::srgb(0.25, 0.25, 0.3));
+        modifier.apply_to_background(&mut bg);
+
+        let button = spawn_child((
+            bevy::prelude::Button,
+            node,
+            bg,
+            BorderRadius::all(Val::Px(4.0)),
+            crate::components::Clickable { on_click },
+        ));
+
+        push_parent(button);
+        // Use body style by default for button labels - no scope needed, it's inside button's scope
+        let label_content = label;
+        spawn_child((
+            bevy::prelude::Text::new(label_content),
+            TextFont {
+                font_size: TextStyle::body().font_size,
+                ..default()
+            },
+            TextColor(TextStyle::body().color),
+        ));
+        pop_parent();
+    });
+}
 
 /// Spacer composable - flexible space that expands
-/// 
+///
 /// # Example
 /// ```ignore
 /// Column(|| {
@@ -550,23 +637,19 @@ where
 /// });
 /// ```
 pub fn Spacer() {
-    spawn_child((
-        Node {
-            flex_grow: 1.0,
-            ..default()
-        },
-    ));
+    spawn_child((Node {
+        flex_grow: 1.0,
+        ..default()
+    },));
 }
 
 /// Fixed-size spacer
 pub fn FixedSpacer(size: f32) {
-    spawn_child((
-        Node {
-            width: Val::Px(size),
-            height: Val::Px(size),
-            ..default()
-        },
-    ));
+    spawn_child((Node {
+        width: Val::Px(size),
+        height: Val::Px(size),
+        ..default()
+    },));
 }
 
 // ============================================================================
@@ -575,97 +658,89 @@ pub fn FixedSpacer(size: f32) {
 
 // Column now relies on `ModifierChain` for visual/layout properties
 
-/// Column with modifier
-/// 
+/// Column layout composable with automatic scoping.
+///
+/// Column is automatically a recomposition boundary - state reads inside
+/// only trigger rebuilds of this column's subtree.
+///
 /// # Example
 /// ```ignore
 /// Column(
-///     ModifierChain::new()
+///     Modifiers::new()
 ///         .padding(16.0)
 ///         .vertical_arrangement(VerticalArrangement::Center)
 ///         .horizontal_alignment(HorizontalAlignment::Center)
 ///         .row_gap(16.0),
 ///     || {
-///         Text("Centered content");
+///         Text("Centered content", TextStyle::body());
 ///     }
 /// );
 /// ```
-pub fn Column<F>(
-    modifier: Modifiers,
-    content: F,
-)
+pub fn Column<F>(modifier: Modifiers, content: F)
 where
-    F: FnOnce(),
+    F: Fn() + Send + Sync + 'static,
 {
     let mut node = Node {
         display: Display::Flex,
         flex_direction: FlexDirection::Column,
         ..default()
     };
-    modifier.apply_to_node(&mut node); 
-    
+    modifier.apply_to_node(&mut node);
+
     let mut bg = BackgroundColor(Color::NONE);
     modifier.apply_to_background(&mut bg);
-    
+
     let column = spawn_child((node, bg));
-    
-    push_parent(column);
-    content();
-    pop_parent();
-} 
+
+    scoped_container(column, content);
+}
 
 // Row now relies on `ModifierChain` for visual/layout properties
 
-/// Row with modifier
-pub fn Row<F>(
-    modifier: Modifiers,
-    content: F,
-)
+/// Row layout composable with automatic scoping.
+///
+/// Row is automatically a recomposition boundary.
+pub fn Row<F>(modifier: Modifiers, content: F)
 where
-    F: FnOnce(),
+    F: Fn() + Send + Sync + 'static,
 {
     let mut node = Node {
         display: Display::Flex,
         flex_direction: FlexDirection::Row,
         ..default()
     };
-    modifier.apply_to_node(&mut node); 
-    
+    modifier.apply_to_node(&mut node);
+
     let mut bg = BackgroundColor(Color::NONE);
     modifier.apply_to_background(&mut bg);
-    
+
     let row = spawn_child((node, bg));
-    
-    push_parent(row);
-    content();
-    pop_parent();
-} 
+
+    scoped_container(row, content);
+}
 
 // Removed unstyled `Box`. Use the styled `Box(modifier, content)` instead.
 
-/// Box with modifier
-pub fn Box<F>(
-    modifier: Modifiers,
-    content: F,
-)
+/// Box layout composable with automatic scoping.
+///
+/// Box is automatically a recomposition boundary.
+pub fn Box<F>(modifier: Modifiers, content: F)
 where
-    F: FnOnce(),
+    F: Fn() + Send + Sync + 'static,
 {
     let mut node = Node {
         display: Display::Flex,
         ..default()
     };
-    modifier.apply_to_node(&mut node); 
-    
+    modifier.apply_to_node(&mut node);
+
     let mut bg = BackgroundColor(Color::NONE);
     modifier.apply_to_background(&mut bg);
-    
+
     let box_node = spawn_child((node, bg));
-    
-    push_parent(box_node);
-    content();
-    pop_parent();
-} 
+
+    scoped_container(box_node, content);
+}
 
 // ============================================================================
 // Root Composable
@@ -673,13 +748,12 @@ where
 
 // Removed unstyled `Surface`. Use the styled `Surface(modifier, content)` instead.
 
-/// Surface with full modifier support
-pub fn Surface<F>(
-    modifier: Modifiers,
-    content: F,
-)
+/// Surface composable with automatic scoping.
+///
+/// Surface is typically the root of your UI and is automatically a recomposition boundary.
+pub fn Surface<F>(modifier: Modifiers, content: F)
 where
-    F: FnOnce(),
+    F: Fn() + Send + Sync + 'static,
 {
     let mut node = Node {
         width: Val::Percent(100.0),
@@ -689,29 +763,29 @@ where
         ..default()
     };
     modifier.apply_to_node(&mut node);
-    
+
     let mut bg = BackgroundColor(Color::NONE);
     modifier.apply_to_background(&mut bg);
-    
+
     let surface = spawn_child((node, bg));
-    
-    push_parent(surface);
-    content();
-    pop_parent();
-}  
+
+    scoped_container(surface, content);
+}
 
 // ============================================================================
 // List Composables
 // ============================================================================
 
-/// Iterates over items and composes content for each
-/// 
+/// Iterates over items and composes content for each.
+///
+/// Each item gets its own implicit scope for granular updates.
+///
 /// # Example
 /// ```ignore
 /// let names = vec!["Alice", "Bob", "Charlie"];
-/// Column(|| {
+/// Column(Modifiers::new(), || {
 ///     ForEach(&names, |name| {
-///         Text(format!("Hello, {}!", name));
+///         Text(format!("Hello, {}!", name), TextStyle::body());
 ///     });
 /// });
 /// ```
@@ -720,16 +794,18 @@ where
     F: Fn(&T),
 {
     for item in items {
-        content(item);
+        with_implicit_scope(|| {
+            content(item);
+        });
     }
 }
 
-/// Conditional composition
-/// 
+/// Conditional composition with automatic scoping.
+///
 /// # Example
 /// ```ignore
 /// If(show_greeting, || {
-///     Text("Hello!");
+///     Text("Hello!", TextStyle::body());
 /// });
 /// ```
 pub fn If<F>(condition: bool, content: F)
@@ -737,17 +813,19 @@ where
     F: FnOnce(),
 {
     if condition {
-        content();
+        with_implicit_scope(|| {
+            content();
+        });
     }
 }
 
-/// Conditional composition with else branch
-/// 
+/// Conditional composition with else branch and automatic scoping.
+///
 /// # Example
 /// ```ignore
 /// IfElse(is_logged_in,
-///     || Text("Welcome back!"),
-///     || Text("Please log in"),
+///     || Text("Welcome back!", TextStyle::body()),
+///     || Text("Please log in", TextStyle::body()),
 /// );
 /// ```
 pub fn IfElse<F1, F2>(condition: bool, if_true: F1, if_false: F2)
@@ -755,11 +833,13 @@ where
     F1: FnOnce(),
     F2: FnOnce(),
 {
-    if condition {
-        if_true();
-    } else {
-        if_false();
-    }
+    with_implicit_scope(|| {
+        if condition {
+            if_true();
+        } else {
+            if_false();
+        }
+    });
 }
 
 // ============================================================================
@@ -779,23 +859,19 @@ pub fn Modifier() -> Modifiers {
 #[derive(Component, Clone, Copy)]
 pub struct ScopeMarker(pub ScopeId);
 
-/// Creates a recomposition boundary scope.
-/// 
-/// Content inside a Scope will only be rebuilt when state it reads changes,
-/// leaving sibling scopes untouched. This enables granular UI updates.
-/// 
+/// Explicit scope boundary (for backward compatibility).
+///
+/// Note: Since all composables (Column, Row, Box, Surface, etc.) are now
+/// automatically scoped, you typically don't need to use this directly.
+/// Use this only when you want an explicit scope without a container.
+///
 /// # Example
 /// ```ignore
 /// Column(Modifiers::new(), || {
-///     // This scope only rebuilds when `counter` changes
+///     // Explicit scope - usually not needed since Column is already scoped
 ///     Scope(|| {
 ///         let count = counter.get();
 ///         Text(format!("Count: {}", count), TextStyle::body());
-///     });
-///     
-///     // This scope is independent and won't rebuild when counter changes
-///     Scope(|| {
-///         Text("I never rebuild!", TextStyle::body());
 ///     });
 /// });
 /// ```
@@ -805,14 +881,14 @@ where
 {
     let scope_id = ScopeId::new();
     let parent_scope = current_scope_id();
-    
+
     // Wrap content in Arc for storage
     let content_fn: ScopedContentFn = Arc::new(content);
-    
+
     // Register this scope with its content function
     register_scope(scope_id, content_fn.clone(), parent_scope);
-    
-    // Create a container node for this scope
+
+    // Create a minimal container node for this scope
     let scope_container = spawn_child((
         Node {
             display: Display::Flex,
@@ -821,36 +897,25 @@ where
         },
         ScopeMarker(scope_id),
     ));
-    
+
     // Update scope registry with root entity
     set_scope_root_entity(scope_id, scope_container);
-    
+
     // Enter this scope and compose content
     push_parent(scope_container);
     enter_scope(scope_id);
-    
+
     content_fn();
-    
+
     exit_scope();
     pop_parent();
 }
 
-/// Scoped state wrapper that automatically creates a scope boundary
-/// 
-/// This is a convenience that combines State with a Scope for common patterns
-/// where a piece of state should have its own recomposition boundary.
-/// 
-/// # Example  
-/// ```ignore
-/// // Creates both state and a scope that rebuilds when the state changes
-/// ScopedState(0, |count| {
-///     Text(format!("Count: {}", count.get()), TextStyle::body());
-///     Button("+", Modifiers::new(), {
-///         let count = count.clone();
-///         move || count.increment()
-///     });
-/// });
-/// ```
+/// Scoped state wrapper (legacy - prefer using State directly in any composable).
+///
+/// Since all composables are now automatically scoped, you can simply use
+/// State<T> directly and it will automatically subscribe to the current scope.
+#[deprecated(note = "All composables are now automatically scoped. Use State<T> directly.")]
 pub fn ScopedState<T, F>(initial: T, content: F)
 where
     T: Clone + Send + Sync + 'static,
@@ -858,7 +923,7 @@ where
 {
     let state = State::new(initial);
     let state_for_content = state.clone();
-    
+
     Scope(move || {
         content(state_for_content.clone());
     });

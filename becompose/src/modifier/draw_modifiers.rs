@@ -2,8 +2,8 @@
 //!
 //! Modifiers that affect visual appearance: background, border.
 
-use bevy::prelude::*;
 use super::{Modifier, ModifierType};
+use bevy::prelude::*;
 
 /// Background modifier
 #[derive(Debug, Clone)]
@@ -88,7 +88,9 @@ pub struct AlphaModifier {
 
 impl AlphaModifier {
     pub fn new(alpha: f32) -> Self {
-        Self { alpha: alpha.clamp(0.0, 1.0) }
+        Self {
+            alpha: alpha.clamp(0.0, 1.0),
+        }
     }
 }
 

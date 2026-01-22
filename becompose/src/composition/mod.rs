@@ -3,12 +3,12 @@
 //! This module contains the core composition tree management,
 //! context handling, and recomposition logic.
 
-mod tree;
 mod context;
-mod reconciler;
 mod recomposition;
+mod reconciler;
+mod tree;
 
-pub use tree::*;
 pub use context::*;
-pub use reconciler::*;
 pub use recomposition::*;
+pub use reconciler::*;
+pub use tree::*;

@@ -35,13 +35,13 @@ impl UiBuilder {
 
     pub fn build(self, commands: &mut Commands) -> Entity {
         // Create root node
-        let root = commands.spawn((
-            Node {
+        let root = commands
+            .spawn((Node {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
                 ..default()
-            },
-        )).id();
+            },))
+            .id();
 
         // Build children
         for child in self.children {
@@ -112,15 +112,19 @@ impl TextElement {
         let mut node_style = Node::default();
         self.modifier.apply_to_node(&mut node_style);
 
-        commands.spawn((
-            Text::new(self.text),
-            TextFont {
-                font_size: self.style.font_size,
-                ..default()
-            },
-            TextColor(self.style.color),
-            TextNode { config: TextConfig::new("") },
-        )).id()
+        commands
+            .spawn((
+                Text::new(self.text),
+                TextFont {
+                    font_size: self.style.font_size,
+                    ..default()
+                },
+                TextColor(self.style.color),
+                TextNode {
+                    config: TextConfig::new(""),
+                },
+            ))
+            .id()
     }
 }
 
@@ -159,17 +163,21 @@ impl ButtonElement {
             align_items: AlignItems::Center,
             ..default()
         };
-        
+
         let mut bg = BackgroundColor(Color::srgb(0.25, 0.25, 0.3));
         self.modifier.apply_to_background(&mut bg);
 
-        let button = commands.spawn((
-            Button,
-            node_style,
-            bg,
-            BorderRadius::all(Val::Px(4.0)),
-            Clickable { on_click: self.on_click },
-        )).id();
+        let button = commands
+            .spawn((
+                Button,
+                node_style,
+                bg,
+                BorderRadius::all(Val::Px(4.0)),
+                Clickable {
+                    on_click: self.on_click,
+                },
+            ))
+            .id();
 
         for child in self.children {
             let child_entity = child.build(commands);
@@ -227,13 +235,14 @@ impl ColumnElement {
     }
 
     pub fn build(self, commands: &mut Commands) -> Entity {
-        let mut node_style = Node::default();
-        
-        node_style.display = Display::Flex;
-        node_style.flex_direction = FlexDirection::Column;
-        node_style.justify_content = self.layout.vertical_arrangement.to_justify_content();
-        node_style.align_items = self.layout.horizontal_alignment.to_align_items();
-        node_style.row_gap = Val::Px(self.layout.spacing);
+        let mut node_style = Node {
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            justify_content: self.layout.vertical_arrangement.to_justify_content(),
+            align_items: self.layout.horizontal_alignment.to_align_items(),
+            row_gap: Val::Px(self.layout.spacing),
+            ..Default::default()
+        };
 
         // Apply modifiers
         self.modifier.apply_to_node(&mut node_style);
@@ -241,11 +250,15 @@ impl ColumnElement {
         let mut bg = BackgroundColor(Color::NONE);
         self.modifier.apply_to_background(&mut bg);
 
-        let column = commands.spawn((
-            node_style,
-            bg,
-            ColumnNode { layout: self.layout },
-        )).id();
+        let column = commands
+            .spawn((
+                node_style,
+                bg,
+                ColumnNode {
+                    layout: self.layout,
+                },
+            ))
+            .id();
 
         for child in self.children {
             let child_entity = child.build(commands);
@@ -309,13 +322,14 @@ impl RowElement {
     }
 
     pub fn build(self, commands: &mut Commands) -> Entity {
-        let mut node_style = Node::default();
-        
-        node_style.display = Display::Flex;
-        node_style.flex_direction = FlexDirection::Row;
-        node_style.justify_content = self.layout.horizontal_arrangement.to_justify_content();
-        node_style.align_items = self.layout.vertical_alignment.to_align_items();
-        node_style.column_gap = Val::Px(self.layout.spacing);
+        let mut node_style = Node {
+            display: Display::Flex,
+            flex_direction: FlexDirection::Row,
+            justify_content: self.layout.horizontal_arrangement.to_justify_content(),
+            align_items: self.layout.vertical_alignment.to_align_items(),
+            column_gap: Val::Px(self.layout.spacing),
+            ..Default::default()
+        };
 
         // Apply modifiers
         self.modifier.apply_to_node(&mut node_style);
@@ -323,11 +337,15 @@ impl RowElement {
         let mut bg = BackgroundColor(Color::NONE);
         self.modifier.apply_to_background(&mut bg);
 
-        let row = commands.spawn((
-            node_style,
-            bg,
-            RowNode { layout: self.layout },
-        )).id();
+        let row = commands
+            .spawn((
+                node_style,
+                bg,
+                RowNode {
+                    layout: self.layout,
+                },
+            ))
+            .id();
 
         for child in self.children {
             let child_entity = child.build(commands);
@@ -382,11 +400,15 @@ impl BoxElement {
         let mut bg = BackgroundColor(Color::NONE);
         self.modifier.apply_to_background(&mut bg);
 
-        let box_node = commands.spawn((
-            node_style,
-            bg,
-            BoxNode { layout: self.layout },
-        )).id();
+        let box_node = commands
+            .spawn((
+                node_style,
+                bg,
+                BoxNode {
+                    layout: self.layout,
+                },
+            ))
+            .id();
 
         for child in self.children {
             let child_entity = child.build(commands);
@@ -429,10 +451,7 @@ impl SpacerElement {
         // Apply modifiers
         self.modifier.apply_to_node(&mut node_style);
 
-        commands.spawn((
-            node_style,
-            SpacerNode,
-        )).id()
+        commands.spawn((node_style, SpacerNode)).id()
     }
 }
 
@@ -476,7 +495,5 @@ pub fn spacer() -> UiElement {
 
 /// Create a sized spacer
 pub fn spacer_sized(width: f32, height: f32) -> UiElement {
-    UiElement::Spacer(SpacerElement::new().with_modifier(
-        Modifiers::new().size(width, height)
-    ))
+    UiElement::Spacer(SpacerElement::new().with_modifier(Modifiers::new().size(width, height)))
 }

@@ -2,8 +2,8 @@
 //!
 //! Modifiers that affect layout: padding, size, fill, weight.
 
-use bevy::prelude::*;
 use super::{Modifier, ModifierType};
+use bevy::prelude::*;
 
 /// Padding modifier
 #[derive(Debug, Clone)]
@@ -16,7 +16,12 @@ pub struct PaddingModifier {
 
 impl PaddingModifier {
     pub fn new(top: f32, right: f32, bottom: f32, left: f32) -> Self {
-        Self { top, right, bottom, left }
+        Self {
+            top,
+            right,
+            bottom,
+            left,
+        }
     }
 
     pub fn all(value: f32) -> Self {
@@ -96,15 +101,24 @@ pub struct FillModifier {
 
 impl FillModifier {
     pub fn max_width() -> Self {
-        Self { fill_width: true, fill_height: false }
+        Self {
+            fill_width: true,
+            fill_height: false,
+        }
     }
 
     pub fn max_height() -> Self {
-        Self { fill_width: false, fill_height: true }
+        Self {
+            fill_width: false,
+            fill_height: true,
+        }
     }
 
     pub fn max_size() -> Self {
-        Self { fill_width: true, fill_height: true }
+        Self {
+            fill_width: true,
+            fill_height: true,
+        }
     }
 }
 
@@ -156,7 +170,12 @@ pub struct MarginModifier {
 
 impl MarginModifier {
     pub fn new(top: f32, right: f32, bottom: f32, left: f32) -> Self {
-        Self { top, right, bottom, left }
+        Self {
+            top,
+            right,
+            bottom,
+            left,
+        }
     }
 
     pub fn all(value: f32) -> Self {

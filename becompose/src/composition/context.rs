@@ -3,19 +3,19 @@
 //! Provides the runtime context for composable functions.
 
 use std::cell::RefCell;
-use std::sync::Arc;
+use std::rc::Rc;
 
-use crate::composition::{CompositionId, CompositionKey, CompositionNode, ComposableType};
+use crate::composition::{ComposableType, CompositionId, CompositionKey, CompositionNode};
 use crate::state::StateSlotManager;
 
 thread_local! {
-    static CURRENT_CONTEXT: RefCell<Option<CompositionContext>> = RefCell::new(None);
+    static CURRENT_CONTEXT: RefCell<Option<CompositionContext>> = const { RefCell::new(None) };
 }
 
 /// The composition context manages the current composition state
 #[derive(Clone)]
 pub struct CompositionContext {
-    inner: Arc<RefCell<CompositionContextInner>>,
+    inner: Rc<RefCell<CompositionContextInner>>,
 }
 
 struct CompositionContextInner {
@@ -34,7 +34,7 @@ struct CompositionContextInner {
 impl CompositionContext {
     pub fn new() -> Self {
         Self {
-            inner: Arc::new(RefCell::new(CompositionContextInner {
+            inner: Rc::new(RefCell::new(CompositionContextInner {
                 node_stack: Vec::new(),
                 state_manager: StateSlotManager::new(),
                 pending_nodes: Vec::new(),
@@ -47,14 +47,12 @@ impl CompositionContext {
     /// Get the current composition context
     pub fn current() -> Self {
         CURRENT_CONTEXT.with(|ctx| {
-            ctx.borrow()
-                .clone()
-                .unwrap_or_else(|| {
-                    // Create a default context if none exists
-                    let new_ctx = CompositionContext::new();
-                    *ctx.borrow_mut() = Some(new_ctx.clone());
-                    new_ctx
-                })
+            ctx.borrow().clone().unwrap_or_else(|| {
+                // Create a default context if none exists
+                let new_ctx = CompositionContext::new();
+                *ctx.borrow_mut() = Some(new_ctx.clone());
+                new_ctx
+            })
         })
     }
 
@@ -76,16 +74,16 @@ impl CompositionContext {
     pub fn start_group(&self, type_id: &str, key: Option<CompositionKey>) -> CompositionId {
         let mut inner = self.inner.borrow_mut();
         inner.active = true;
-        
+
         let mut node = CompositionNode::new(ComposableType::Custom(type_id.to_string()));
         if let Some(k) = key {
             node.key = Some(k);
         }
-        
+
         let id = node.id;
         inner.pending_nodes.push(node);
         inner.node_stack.push(id);
-        
+
         id
     }
 
@@ -93,7 +91,7 @@ impl CompositionContext {
     pub fn end_group(&self, _id: CompositionId) {
         let mut inner = self.inner.borrow_mut();
         inner.node_stack.pop();
-        
+
         if inner.node_stack.is_empty() {
             inner.active = false;
         }

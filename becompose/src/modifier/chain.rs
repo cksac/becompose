@@ -2,9 +2,11 @@
 //!
 //! Provides the chainable modifier system.
 
+use crate::layout::{
+    HorizontalAlignment, HorizontalArrangement, VerticalAlignment, VerticalArrangement,
+};
 use bevy::prelude::*;
 use std::sync::Arc;
-use crate::layout::{VerticalArrangement, HorizontalArrangement, HorizontalAlignment, VerticalAlignment};
 
 /// Categories of modifiers for ordering
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,8 +32,6 @@ pub trait Modifier: Send + Sync + 'static {
     /// Get the modifier type for ordering
     fn modifier_type(&self) -> ModifierType;
 }
-
-
 
 /// Chain of modifiers applied to a composable
 #[derive(Default, Clone)]

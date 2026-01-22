@@ -5,8 +5,7 @@
 use bevy::prelude::*;
 
 use super::{
-    HorizontalAlignment, VerticalAlignment, HorizontalArrangement, 
-    VerticalArrangement, Alignment2D,
+    Alignment2D, HorizontalAlignment, HorizontalArrangement, VerticalAlignment, VerticalArrangement,
 };
 
 /// Configuration for Column layout

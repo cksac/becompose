@@ -4,7 +4,7 @@
 
 use std::any::Any;
 use std::cell::RefCell;
-use std::sync::Arc;
+use std::rc::Rc;
 
 /// A slot for storing state
 pub type StateSlot = Box<dyn Any + Send + Sync>;
@@ -12,7 +12,7 @@ pub type StateSlot = Box<dyn Any + Send + Sync>;
 /// Manages state slots for a composable
 #[derive(Clone)]
 pub struct StateSlotManager {
-    inner: Arc<RefCell<StateSlotManagerInner>>,
+    inner: Rc<RefCell<StateSlotManagerInner>>,
 }
 
 struct StateSlotManagerInner {
@@ -23,7 +23,7 @@ struct StateSlotManagerInner {
 impl StateSlotManager {
     pub fn new() -> Self {
         Self {
-            inner: Arc::new(RefCell::new(StateSlotManagerInner {
+            inner: Rc::new(RefCell::new(StateSlotManagerInner {
                 slots: Vec::new(),
                 current_index: 0,
             })),

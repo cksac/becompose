@@ -49,7 +49,7 @@ impl<T: Clone + PartialEq + Send + Sync + 'static> MutableState<T> {
                 None
             }
         };
-        
+
         // Trigger change callback outside of lock
         if let Some(cb) = callback {
             cb();
@@ -84,6 +84,8 @@ impl<T: Clone + PartialEq + Send + Sync + Default + 'static> Default for Mutable
 }
 
 /// Create mutable state with an initial value
-pub fn mutable_state_of<T: Clone + PartialEq + Send + Sync + 'static>(initial: T) -> MutableState<T> {
+pub fn mutable_state_of<T: Clone + PartialEq + Send + Sync + 'static>(
+    initial: T,
+) -> MutableState<T> {
     MutableState::new(initial)
 }

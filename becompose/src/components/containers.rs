@@ -2,8 +2,8 @@
 //!
 //! Card and other container composables.
 
-use bevy::prelude::*;
 use crate::modifier::Modifiers;
+use bevy::prelude::*;
 
 /// Configuration for a Card container
 #[derive(Debug, Clone)]
