@@ -1,4 +1,4 @@
-//! Material Snackbar Composable
+//! Snackbar Composable
 //!
 //! Wraps bevy_material_ui Snackbar component as a BECOMPOSE composable.
 
@@ -9,7 +9,7 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design snackbar composable
+/// Design snackbar composable
 ///
 /// Note: Snackbars are typically triggered via events rather than composed directly.
 /// Use this to create a snackbar host that can display snackbar messages.
@@ -17,14 +17,14 @@ use crate::bevy_integration::material_ui::spawn_material_child;
 /// # Example
 /// ```ignore
 /// // In your UI setup
-/// MaterialSnackbarHost();
+/// SnackbarHost();
 ///
 /// // To show a snackbar, send an event
 /// fn show_message(mut writer: EventWriter<ShowSnackbar>) {
 ///     writer.send(ShowSnackbar::new("Message saved"));
 /// }
 /// ```
-pub fn MaterialSnackbarHost() {
+pub fn SnackbarHost() {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, _theme| {
             // Note: SnackbarQueue is typically handled via a resource in bevy_material_ui
@@ -41,8 +41,8 @@ pub fn MaterialSnackbarHost() {
     });
 }
 
-/// Material Design snackbar composable with position
-pub fn MaterialSnackbarHostPositioned(position: SnackbarPosition) {
+/// Design snackbar composable with position
+pub fn SnackbarHostPositioned(position: SnackbarPosition) {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, _theme| {
             let node = match position {
@@ -110,14 +110,14 @@ where
 
 /// Configuration for showing a snackbar
 #[derive(Clone)]
-pub struct MaterialSnackbarConfig {
+pub struct SnackbarConfig {
     pub message: String,
     pub action_label: Option<String>,
     pub duration: f32,
     pub on_action: Option<Arc<dyn Fn() + Send + Sync>>,
 }
 
-impl MaterialSnackbarConfig {
+impl SnackbarConfig {
     pub fn new(message: impl Into<String>) -> Self {
         Self {
             message: message.into(),

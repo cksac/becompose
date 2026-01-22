@@ -1,4 +1,4 @@
-//! Material Select Composable
+//! Select Composable
 //!
 //! Wraps bevy_material_ui Select component as a BECOMPOSE composable.
 
@@ -9,16 +9,16 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design select (dropdown) composable
+/// Design select (dropdown) composable
 ///
 /// # Example
 /// ```ignore
 /// let options = vec!["Small", "Medium", "Large"];
-/// MaterialSelectComposable("Size", &options, 0, |index| {
+/// Select("Size", &options, 0, |index| {
 ///     println!("Selected index: {}", index);
 /// });
 /// ```
-pub fn MaterialSelectComposable<F>(
+pub fn Select<F>(
     label: impl Into<String>,
     options: &[impl AsRef<str>],
     selected_index: usize,
@@ -47,7 +47,7 @@ pub fn MaterialSelectComposable<F>(
                     },
                     BackgroundColor(theme.surface_container_highest),
                 ))
-                .insert(MaterialSelectChangeHandler {
+                .insert(SelectChangeHandler {
                     on_select: on_select.clone(),
                 })
                 .id()
@@ -55,8 +55,8 @@ pub fn MaterialSelectComposable<F>(
     });
 }
 
-/// Material Design select composable with configuration
-pub fn MaterialSelectConfigured<F>(config: MaterialSelectConfig, on_select: F)
+/// Design select composable with configuration
+pub fn SelectConfigured<F>(config: SelectConfig, on_select: F)
 where
     F: Fn(usize) + Send + Sync + 'static,
 {
@@ -83,7 +83,7 @@ where
                     },
                     BackgroundColor(theme.surface_container_highest),
                 ))
-                .insert(MaterialSelectChangeHandler {
+                .insert(SelectChangeHandler {
                     on_select: on_select.clone(),
                 })
                 .id()
@@ -91,9 +91,9 @@ where
     });
 }
 
-/// Configuration for a Material select
+/// Configuration for a select
 #[derive(Clone)]
-pub struct MaterialSelectConfig {
+pub struct SelectConfig {
     pub label: String,
     pub options: Vec<String>,
     pub selected_index: usize,
@@ -102,7 +102,7 @@ pub struct MaterialSelectConfig {
     pub width: f32,
 }
 
-impl MaterialSelectConfig {
+impl SelectConfig {
     pub fn new(label: impl Into<String>, options: Vec<impl Into<String>>) -> Self {
         Self {
             label: label.into(),
@@ -147,6 +147,6 @@ impl MaterialSelectConfig {
 
 /// Component to handle select change events
 #[derive(Component)]
-pub struct MaterialSelectChangeHandler {
+pub struct SelectChangeHandler {
     pub on_select: Arc<dyn Fn(usize) + Send + Sync>,
 }

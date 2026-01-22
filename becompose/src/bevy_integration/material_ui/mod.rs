@@ -1,7 +1,7 @@
-//! Material UI Composables
+//! UI Composables
 //!
 //! This module wraps bevy_material_ui components as BECOMPOSE composables,
-//! enabling declarative Material Design 3 UI development.
+//! enabling declarative Design 3 UI development.
 //!
 //! # Example
 //! ```ignore
@@ -9,10 +9,10 @@
 //! use becompose::material_ui::*;
 //!
 //! fn MyApp() {
-//!     MaterialColumn(Modifiers::new().padding(16.0), || {
-//!         MaterialFilledButton("Click Me", || println!("Clicked!"));
-//!         MaterialCheckbox("Accept terms", CheckboxState::Unchecked, |state| println!("State: {:?}", state));
-//!         MaterialSwitch("Enable notifications", false, |selected| println!("Selected: {}", selected));
+//!     Column(Modifiers::new().padding(16.0), || {
+//!         FilledButton("Click Me", || println!("Clicked!"));
+//!         Checkbox("Accept terms", CheckboxState::Unchecked, |state| println!("State: {:?}", state));
+//!         Switch("Enable notifications", false, |selected| println!("Selected: {}", selected));
 //!     });
 //! }
 //! ```

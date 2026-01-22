@@ -1,4 +1,4 @@
-//! Material Tabs Composable
+//! Tabs Composable
 //!
 //! Wraps bevy_material_ui Tabs component as a BECOMPOSE composable.
 
@@ -9,16 +9,16 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design tabs composable
+/// Design tabs composable
 ///
 /// # Example
 /// ```ignore
 /// let tabs = vec!["Home", "Profile", "Settings"];
-/// MaterialTabsComposable(&tabs, 0, |index| {
+/// Tabs(&tabs, 0, |index| {
 ///     println!("Selected tab: {}", index);
 /// });
 /// ```
-pub fn MaterialTabsComposable<F>(tabs: &[impl AsRef<str>], selected_index: usize, on_select: F)
+pub fn Tabs<F>(tabs: &[impl AsRef<str>], selected_index: usize, on_select: F)
 where
     F: Fn(usize) + Send + Sync + 'static,
 {
@@ -38,7 +38,7 @@ where
                     },
                     BackgroundColor(theme.surface),
                 ))
-                .insert(MaterialTabsChangeHandler {
+                .insert(TabsChangeHandler {
                     on_select: on_select.clone(),
                 })
                 .id();
@@ -96,7 +96,7 @@ where
     });
 }
 
-/// Material Design tabs composable with icons
+/// Design tabs composable with icons
 ///
 /// # Example
 /// ```ignore
@@ -105,11 +105,11 @@ where
 ///     ("person", "Profile"),
 ///     ("settings", "Settings"),
 /// ];
-/// MaterialTabsWithIcons(&tabs, 0, |index| {
+/// TabsWithIcons(&tabs, 0, |index| {
 ///     println!("Selected tab: {}", index);
 /// });
 /// ```
-pub fn MaterialTabsWithIcons<F>(
+pub fn TabsWithIcons<F>(
     tabs: &[(impl AsRef<str>, impl AsRef<str>)],
     selected_index: usize,
     on_select: F,
@@ -135,7 +135,7 @@ pub fn MaterialTabsWithIcons<F>(
                     },
                     BackgroundColor(theme.surface),
                 ))
-                .insert(MaterialTabsChangeHandler {
+                .insert(TabsChangeHandler {
                     on_select: on_select.clone(),
                 })
                 .id();
@@ -195,8 +195,8 @@ pub fn MaterialTabsWithIcons<F>(
     });
 }
 
-/// Material Design tabs composable with configuration
-pub fn MaterialTabsConfigured<F>(config: MaterialTabsConfig, on_select: F)
+/// Design tabs composable with configuration
+pub fn TabsConfigured<F>(config: TabsConfig, on_select: F)
 where
     F: Fn(usize) + Send + Sync + 'static,
 {
@@ -215,7 +215,7 @@ where
                     },
                     BackgroundColor(theme.surface),
                 ))
-                .insert(MaterialTabsChangeHandler {
+                .insert(TabsChangeHandler {
                     on_select: on_select.clone(),
                 })
                 .id();
@@ -298,13 +298,13 @@ impl TabConfig {
 
 /// Configuration for Material tabs
 #[derive(Clone)]
-pub struct MaterialTabsConfig {
+pub struct TabsConfig {
     pub tabs: Vec<TabConfig>,
     pub selected_index: usize,
     pub disabled_indices: Vec<usize>,
 }
 
-impl MaterialTabsConfig {
+impl TabsConfig {
     pub fn new(tabs: Vec<TabConfig>) -> Self {
         Self {
             tabs,
@@ -326,6 +326,6 @@ impl MaterialTabsConfig {
 
 /// Component to handle tab change events
 #[derive(Component)]
-pub struct MaterialTabsChangeHandler {
+pub struct TabsChangeHandler {
     pub on_select: Arc<dyn Fn(usize) + Send + Sync>,
 }

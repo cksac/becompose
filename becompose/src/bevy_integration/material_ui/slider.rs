@@ -1,4 +1,4 @@
-//! Material Slider Composable
+//! Slider Composable
 //!
 //! Wraps bevy_material_ui Slider component as a BECOMPOSE composable.
 
@@ -9,15 +9,15 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design slider composable
+/// Design slider composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialSliderComposable(0.5, 0.0, 1.0, |value| {
+/// Slider(0.5, 0.0, 1.0, |value| {
 ///     println!("Slider value: {}", value);
 /// });
 /// ```
-pub fn MaterialSliderComposable<F>(value: f32, min: f32, max: f32, on_change: F)
+pub fn Slider<F>(value: f32, min: f32, max: f32, on_change: F)
 where
     F: Fn(f32) + Send + Sync + 'static,
 {
@@ -29,7 +29,7 @@ where
 
             commands
                 .spawn(slider_bundle)
-                .insert(MaterialSliderChangeHandler {
+                .insert(SliderChangeHandler {
                     on_change: on_change.clone(),
                 })
                 .id()
@@ -37,15 +37,15 @@ where
     });
 }
 
-/// Material Design slider composable with label
+/// Design slider composable with label
 ///
 /// # Example
 /// ```ignore
-/// MaterialSliderWithLabel("Volume", 0.5, 0.0, 1.0, |value| {
+/// SliderWithLabel("Volume", 0.5, 0.0, 1.0, |value| {
 ///     println!("Volume: {}", value);
 /// });
 /// ```
-pub fn MaterialSliderWithLabel<F>(
+pub fn SliderWithLabel<F>(
     label: impl Into<String>,
     value: f32,
     min: f32,
@@ -88,7 +88,7 @@ pub fn MaterialSliderWithLabel<F>(
 
             let slider_entity = commands
                 .spawn(slider_bundle)
-                .insert(MaterialSliderChangeHandler {
+                .insert(SliderChangeHandler {
                     on_change: on_change.clone(),
                 })
                 .id();
@@ -100,8 +100,8 @@ pub fn MaterialSliderWithLabel<F>(
     });
 }
 
-/// Material Design slider composable with configuration
-pub fn MaterialSliderConfigured<F>(config: MaterialSliderConfig, on_change: F)
+/// Design slider composable with configuration
+pub fn SliderConfigured<F>(config: SliderConfig, on_change: F)
 where
     F: Fn(f32) + Send + Sync + 'static,
 {
@@ -156,7 +156,7 @@ where
 
             let slider_entity = commands
                 .spawn(slider_bundle)
-                .insert(MaterialSliderChangeHandler {
+                .insert(SliderChangeHandler {
                     on_change: on_change.clone(),
                 })
                 .id();
@@ -168,9 +168,9 @@ where
     });
 }
 
-/// Configuration for a Material slider
+/// Configuration for a slider
 #[derive(Clone)]
-pub struct MaterialSliderConfig {
+pub struct SliderConfig {
     pub label: Option<String>,
     pub value: f32,
     pub min: f32,
@@ -180,7 +180,7 @@ pub struct MaterialSliderConfig {
     pub show_ticks: bool,
 }
 
-impl MaterialSliderConfig {
+impl SliderConfig {
     pub fn new(value: f32, min: f32, max: f32) -> Self {
         Self {
             label: None,
@@ -216,6 +216,6 @@ impl MaterialSliderConfig {
 
 /// Component to handle slider change events
 #[derive(Component)]
-pub struct MaterialSliderChangeHandler {
+pub struct SliderChangeHandler {
     pub on_change: Arc<dyn Fn(f32) + Send + Sync>,
 }

@@ -1,4 +1,4 @@
-//! Material Chip Composable
+//! Chip Composable
 //!
 //! Wraps bevy_material_ui Chip component as a BECOMPOSE composable.
 
@@ -9,30 +9,30 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design assist chip composable
+/// Design assist chip composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialAssistChip("Help", || {
+/// AssistChip("Help", || {
 ///     println!("Assist chip clicked!");
 /// });
 /// ```
-pub fn MaterialAssistChip<F>(label: impl Into<String>, on_click: F)
+pub fn AssistChip<F>(label: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialChipComposable(label, ChipVariant::Assist, on_click);
+    Chip(label, ChipVariant::Assist, on_click);
 }
 
-/// Material Design filter chip composable
+/// Design filter chip composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialFilterChip("Active", true, |selected| {
+/// FilterChip("Active", true, |selected| {
 ///     println!("Filter chip selected: {}", selected);
 /// });
 /// ```
-pub fn MaterialFilterChip<F>(label: impl Into<String>, selected: bool, on_select: F)
+pub fn FilterChip<F>(label: impl Into<String>, selected: bool, on_select: F)
 where
     F: Fn(bool) + Send + Sync + 'static,
 {
@@ -45,7 +45,7 @@ where
 
             commands
                 .spawn(chip_bundle)
-                .insert(MaterialChipSelectHandler {
+                .insert(ChipSelectHandler {
                     on_select: on_select.clone(),
                 })
                 .with_children(|parent| {
@@ -64,15 +64,15 @@ where
     });
 }
 
-/// Material Design input chip composable
+/// Design input chip composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialInputChip("Tag", || {
+/// InputChip("Tag", || {
 ///     println!("Input chip deleted!");
 /// });
 /// ```
-pub fn MaterialInputChip<F>(label: impl Into<String>, on_delete: F)
+pub fn InputChip<F>(label: impl Into<String>, on_delete: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -85,7 +85,7 @@ where
 
             commands
                 .spawn(chip_bundle)
-                .insert(MaterialChipDeleteHandler {
+                .insert(ChipDeleteHandler {
                     on_delete: on_delete.clone(),
                 })
                 .with_children(|parent| {
@@ -104,23 +104,23 @@ where
     });
 }
 
-/// Material Design suggestion chip composable
+/// Design suggestion chip composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialSuggestionChip("Suggestion", || {
+/// SuggestionChip("Suggestion", || {
 ///     println!("Suggestion chip clicked!");
 /// });
 /// ```
-pub fn MaterialSuggestionChip<F>(label: impl Into<String>, on_click: F)
+pub fn SuggestionChip<F>(label: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialChipComposable(label, ChipVariant::Suggestion, on_click);
+    Chip(label, ChipVariant::Suggestion, on_click);
 }
 
-/// Material Design chip composable with variant
-pub fn MaterialChipComposable<F>(label: impl Into<String>, variant: ChipVariant, on_click: F)
+/// Design chip composable with variant
+pub fn Chip<F>(label: impl Into<String>, variant: ChipVariant, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -138,7 +138,7 @@ where
 
             commands
                 .spawn(chip_bundle)
-                .insert(MaterialChipClickHandler {
+                .insert(ChipClickHandler {
                     on_click: on_click.clone(),
                 })
                 .with_children(|parent| {
@@ -157,8 +157,8 @@ where
     });
 }
 
-/// Material Design chip composable with full configuration
-pub fn MaterialChipConfigured<F>(config: MaterialChipConfig, on_click: F)
+/// Design chip composable with full configuration
+pub fn ChipConfigured<F>(config: ChipConfig, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -193,7 +193,7 @@ where
 
             commands
                 .spawn(chip_bundle)
-                .insert(MaterialChipClickHandler {
+                .insert(ChipClickHandler {
                     on_click: on_click.clone(),
                 })
                 .with_children(|parent| {
@@ -212,9 +212,9 @@ where
     });
 }
 
-/// Configuration for a Material chip
+/// Configuration for a chip
 #[derive(Clone)]
-pub struct MaterialChipConfig {
+pub struct ChipConfig {
     pub label: String,
     pub variant: ChipVariant,
     pub selected: bool,
@@ -223,7 +223,7 @@ pub struct MaterialChipConfig {
     pub leading_icon: Option<String>,
 }
 
-impl MaterialChipConfig {
+impl ChipConfig {
     pub fn new(label: impl Into<String>) -> Self {
         Self {
             label: label.into(),
@@ -283,18 +283,18 @@ impl MaterialChipConfig {
 
 /// Component to handle chip click events
 #[derive(Component)]
-pub struct MaterialChipClickHandler {
+pub struct ChipClickHandler {
     pub on_click: Arc<dyn Fn() + Send + Sync>,
 }
 
 /// Component to handle chip select events (for filter chips)
 #[derive(Component)]
-pub struct MaterialChipSelectHandler {
+pub struct ChipSelectHandler {
     pub on_select: Arc<dyn Fn(bool) + Send + Sync>,
 }
 
 /// Component to handle chip delete events (for input chips)
 #[derive(Component)]
-pub struct MaterialChipDeleteHandler {
+pub struct ChipDeleteHandler {
     pub on_delete: Arc<dyn Fn() + Send + Sync>,
 }

@@ -1,4 +1,4 @@
-//! Material Progress Composables
+//! Progress Composables
 //!
 //! Wraps bevy_material_ui Progress components as BECOMPOSE composables.
 
@@ -7,13 +7,13 @@ use bevy_material_ui::prelude::{CircularProgressBuilder, LinearProgressBuilder};
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design linear progress indicator composable (determinate)
+/// Design linear progress indicator composable (determinate)
 ///
 /// # Example
 /// ```ignore
-/// MaterialLinearProgress(0.5); // 50% progress
+/// LinearProgress(0.5); // 50% progress
 /// ```
-pub fn MaterialLinearProgress(progress: f32) {
+pub fn LinearProgress(progress: f32) {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             let progress_bundle = LinearProgressBuilder::new().progress(progress).build(theme);
@@ -23,13 +23,13 @@ pub fn MaterialLinearProgress(progress: f32) {
     });
 }
 
-/// Material Design linear progress indicator composable (indeterminate)
+/// Design linear progress indicator composable (indeterminate)
 ///
 /// # Example
 /// ```ignore
-/// MaterialLinearProgressIndeterminate();
+/// LinearProgressIndeterminate();
 /// ```
-pub fn MaterialLinearProgressIndeterminate() {
+pub fn LinearProgressIndeterminate() {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             let progress_bundle = LinearProgressBuilder::new().indeterminate().build(theme);
@@ -39,13 +39,13 @@ pub fn MaterialLinearProgressIndeterminate() {
     });
 }
 
-/// Material Design circular progress indicator composable (determinate)
+/// Design circular progress indicator composable (determinate)
 ///
 /// # Example
 /// ```ignore
-/// MaterialCircularProgress(0.75); // 75% progress
+/// CircularProgress(0.75); // 75% progress
 /// ```
-pub fn MaterialCircularProgress(progress: f32) {
+pub fn CircularProgress(progress: f32) {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             let progress_bundle = CircularProgressBuilder::new()
@@ -57,13 +57,13 @@ pub fn MaterialCircularProgress(progress: f32) {
     });
 }
 
-/// Material Design circular progress indicator composable (indeterminate)
+/// Design circular progress indicator composable (indeterminate)
 ///
 /// # Example
 /// ```ignore
-/// MaterialCircularProgressIndeterminate();
+/// CircularProgressIndeterminate();
 /// ```
-pub fn MaterialCircularProgressIndeterminate() {
+pub fn CircularProgressIndeterminate() {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             let progress_bundle = CircularProgressBuilder::new().indeterminate().build(theme);
@@ -73,8 +73,8 @@ pub fn MaterialCircularProgressIndeterminate() {
     });
 }
 
-/// Material Design linear progress composable with configuration
-pub fn MaterialLinearProgressConfigured(config: MaterialProgressConfig) {
+/// Design linear progress composable with configuration
+pub fn LinearProgressConfigured(config: ProgressConfig) {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             let mut builder = LinearProgressBuilder::new();
@@ -92,8 +92,8 @@ pub fn MaterialLinearProgressConfigured(config: MaterialProgressConfig) {
     });
 }
 
-/// Material Design circular progress composable with configuration
-pub fn MaterialCircularProgressConfigured(config: MaterialProgressConfig) {
+/// Design circular progress composable with configuration
+pub fn CircularProgressConfigured(config: ProgressConfig) {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             let mut builder = CircularProgressBuilder::new();
@@ -111,14 +111,14 @@ pub fn MaterialCircularProgressConfigured(config: MaterialProgressConfig) {
     });
 }
 
-/// Configuration for a Material progress indicator
+/// Configuration for a progress indicator
 #[derive(Clone)]
-pub struct MaterialProgressConfig {
+pub struct ProgressConfig {
     pub progress: f32,
     pub indeterminate: bool,
 }
 
-impl MaterialProgressConfig {
+impl ProgressConfig {
     pub fn new() -> Self {
         Self {
             progress: 0.0,
@@ -138,7 +138,7 @@ impl MaterialProgressConfig {
     }
 }
 
-impl Default for MaterialProgressConfig {
+impl Default for ProgressConfig {
     fn default() -> Self {
         Self::new()
     }

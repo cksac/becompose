@@ -1,4 +1,4 @@
-//! Material Tooltip Composable
+//! Tooltip Composable
 //!
 //! Wraps bevy_material_ui Tooltip component as a BECOMPOSE composable.
 
@@ -7,17 +7,17 @@ use bevy::prelude::*;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child_with_children;
 
-/// Material Design tooltip composable wrapping content
+/// Design tooltip composable wrapping content
 ///
 /// # Example
 /// ```ignore
-/// MaterialTooltipComposable("Click to submit", || {
+/// Tooltip("Click to submit", || {
 ///     Button(|| {
 ///         Text("Submit");
 ///     });
 /// });
 /// ```
-pub fn MaterialTooltipComposable<C>(text: impl AsRef<str>, content: C)
+pub fn Tooltip<C>(text: impl AsRef<str>, content: C)
 where
     C: FnOnce() + Send + Sync + 'static,
 {
@@ -28,13 +28,13 @@ where
             move |commands, theme| {
                 commands
                     .spawn((
-                        MaterialTooltipWrapper { text: text.clone() },
+                        TooltipWrapper { text: text.clone() },
                         Node {
                             display: Display::Flex,
                             ..default()
                         },
                     ))
-                    .insert(MaterialTooltipConfig {
+                    .insert(TooltipConfig {
                         text,
                         delay_ms: 500,
                         position: TooltipPosition::Bottom,
@@ -48,8 +48,8 @@ where
     });
 }
 
-/// Material Design tooltip with position configuration
-pub fn MaterialTooltipPositioned<C>(text: impl AsRef<str>, position: TooltipPosition, content: C)
+/// Design tooltip with position configuration
+pub fn TooltipPositioned<C>(text: impl AsRef<str>, position: TooltipPosition, content: C)
 where
     C: FnOnce() + Send + Sync + 'static,
 {
@@ -60,13 +60,13 @@ where
             move |commands, theme| {
                 commands
                     .spawn((
-                        MaterialTooltipWrapper { text: text.clone() },
+                        TooltipWrapper { text: text.clone() },
                         Node {
                             display: Display::Flex,
                             ..default()
                         },
                     ))
-                    .insert(MaterialTooltipConfig {
+                    .insert(TooltipConfig {
                         text,
                         delay_ms: 500,
                         position,
@@ -80,8 +80,8 @@ where
     });
 }
 
-/// Material Design rich tooltip with title
-pub fn MaterialRichTooltip<C>(title: impl AsRef<str>, text: impl AsRef<str>, content: C)
+/// Design rich tooltip with title
+pub fn RichTooltip<C>(title: impl AsRef<str>, text: impl AsRef<str>, content: C)
 where
     C: FnOnce() + Send + Sync + 'static,
 {
@@ -93,7 +93,7 @@ where
             move |commands, theme| {
                 commands
                     .spawn((
-                        MaterialRichTooltipWrapper {
+                        RichTooltipWrapper {
                             title: title.clone(),
                             text: text.clone(),
                         },
@@ -102,7 +102,7 @@ where
                             ..default()
                         },
                     ))
-                    .insert(MaterialRichTooltipConfig {
+                    .insert(RichTooltipConfig {
                         title,
                         text,
                         delay_ms: 500,
@@ -118,8 +118,8 @@ where
     });
 }
 
-/// Material Design tooltip with full configuration
-pub fn MaterialTooltipConfigured<C>(config: MaterialTooltipComposableConfig, content: C)
+/// Design tooltip with full configuration
+pub fn TooltipConfigured<C>(config: TooltipComposableConfig, content: C)
 where
     C: FnOnce() + Send + Sync + 'static,
 {
@@ -128,7 +128,7 @@ where
             move |commands, theme| {
                 commands
                     .spawn((
-                        MaterialTooltipWrapper {
+                        TooltipWrapper {
                             text: config.text.clone(),
                         },
                         Node {
@@ -136,7 +136,7 @@ where
                             ..default()
                         },
                     ))
-                    .insert(MaterialTooltipConfig {
+                    .insert(TooltipConfig {
                         text: config.text,
                         delay_ms: config.delay_ms,
                         position: config.position,
@@ -162,20 +162,20 @@ pub enum TooltipPosition {
 
 /// Wrapper component for tooltip
 #[derive(Component)]
-pub struct MaterialTooltipWrapper {
+pub struct TooltipWrapper {
     pub text: String,
 }
 
 /// Wrapper component for rich tooltip
 #[derive(Component)]
-pub struct MaterialRichTooltipWrapper {
+pub struct RichTooltipWrapper {
     pub title: String,
     pub text: String,
 }
 
 /// Configuration for tooltip display
 #[derive(Component, Clone)]
-pub struct MaterialTooltipConfig {
+pub struct TooltipConfig {
     pub text: String,
     pub delay_ms: u32,
     pub position: TooltipPosition,
@@ -185,7 +185,7 @@ pub struct MaterialTooltipConfig {
 
 /// Configuration for rich tooltip display
 #[derive(Component, Clone)]
-pub struct MaterialRichTooltipConfig {
+pub struct RichTooltipConfig {
     pub title: String,
     pub text: String,
     pub delay_ms: u32,
@@ -197,7 +197,7 @@ pub struct MaterialRichTooltipConfig {
 
 /// Composable configuration for tooltip
 #[derive(Clone)]
-pub struct MaterialTooltipComposableConfig {
+pub struct TooltipComposableConfig {
     pub text: String,
     pub delay_ms: u32,
     pub position: TooltipPosition,
@@ -205,7 +205,7 @@ pub struct MaterialTooltipComposableConfig {
     pub text_color: Option<Color>,
 }
 
-impl MaterialTooltipComposableConfig {
+impl TooltipComposableConfig {
     pub fn new(text: impl Into<String>) -> Self {
         Self {
             text: text.into(),

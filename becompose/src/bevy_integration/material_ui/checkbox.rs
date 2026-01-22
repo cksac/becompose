@@ -1,4 +1,4 @@
-//! Material Checkbox Composable
+//! Checkbox Composable
 //!
 //! Wraps bevy_material_ui Checkbox component as a BECOMPOSE composable.
 
@@ -9,15 +9,15 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design checkbox composable
+/// Design checkbox composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialCheckboxComposable("Accept terms", CheckboxState::Unchecked, |new_state| {
+/// Checkbox("Accept terms", CheckboxState::Unchecked, |new_state| {
 ///     println!("Checkbox state changed to: {:?}", new_state);
 /// });
 /// ```
-pub fn MaterialCheckboxComposable<F>(
+pub fn Checkbox<F>(
     label: impl Into<String>,
     initial_state: CheckboxState,
     on_change: F,
@@ -43,7 +43,7 @@ pub fn MaterialCheckboxComposable<F>(
             // Spawn checkbox
             let checkbox_entity = commands
                 .spawn(CheckboxBuilder::new().state(initial_state).build())
-                .insert(MaterialCheckboxChangeHandler {
+                .insert(CheckboxChangeHandler {
                     on_change: on_change.clone(),
                 })
                 .id();
@@ -69,8 +69,8 @@ pub fn MaterialCheckboxComposable<F>(
     });
 }
 
-/// Material Design checkbox composable with configuration
-pub fn MaterialCheckboxConfigured<F>(config: MaterialCheckboxConfig, on_change: F)
+/// Design checkbox composable with configuration
+pub fn CheckboxConfigured<F>(config: CheckboxConfig, on_change: F)
 where
     F: Fn(CheckboxState) + Send + Sync + 'static,
 {
@@ -100,7 +100,7 @@ where
 
             let checkbox_entity = commands
                 .spawn(builder.build())
-                .insert(MaterialCheckboxChangeHandler {
+                .insert(CheckboxChangeHandler {
                     on_change: on_change.clone(),
                 })
                 .id();
@@ -131,16 +131,16 @@ where
     });
 }
 
-/// Configuration for a Material checkbox
+/// Configuration for a checkbox
 #[derive(Clone)]
-pub struct MaterialCheckboxConfig {
+pub struct CheckboxConfig {
     pub label: Option<String>,
     pub state: CheckboxState,
     pub disabled: bool,
     pub error: bool,
 }
 
-impl MaterialCheckboxConfig {
+impl CheckboxConfig {
     pub fn new() -> Self {
         Self {
             label: None,
@@ -181,7 +181,7 @@ impl MaterialCheckboxConfig {
     }
 }
 
-impl Default for MaterialCheckboxConfig {
+impl Default for CheckboxConfig {
     fn default() -> Self {
         Self::new()
     }
@@ -189,6 +189,6 @@ impl Default for MaterialCheckboxConfig {
 
 /// Component to handle checkbox change events
 #[derive(Component)]
-pub struct MaterialCheckboxChangeHandler {
+pub struct CheckboxChangeHandler {
     pub on_change: Arc<dyn Fn(CheckboxState) + Send + Sync>,
 }

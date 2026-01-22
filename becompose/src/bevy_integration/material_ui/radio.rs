@@ -1,4 +1,4 @@
-//! Material Radio Button Composable
+//! Radio Button Composable
 //!
 //! Wraps bevy_material_ui Radio component as a BECOMPOSE composable.
 
@@ -9,15 +9,15 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design radio button composable
+/// Design radio button composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialRadioComposable("Option A", true, || {
+/// Radio("Option A", true, || {
 ///     println!("Option A selected");
 /// });
 /// ```
-pub fn MaterialRadioComposable<F>(label: impl Into<String>, selected: bool, on_select: F)
+pub fn Radio<F>(label: impl Into<String>, selected: bool, on_select: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -41,7 +41,7 @@ where
 
             let radio_entity = commands
                 .spawn(radio_bundle)
-                .insert(MaterialRadioSelectHandler {
+                .insert(RadioSelectHandler {
                     on_select: on_select.clone(),
                 })
                 .id();
@@ -67,17 +67,17 @@ where
     });
 }
 
-/// Material Design radio group composable
+/// Design radio group composable
 ///
 /// # Example
 /// ```ignore
 /// let options = vec!["Small", "Medium", "Large"];
 /// let selected = 0;
-/// MaterialRadioGroup(&options, selected, |index| {
+/// RadioGroup(&options, selected, |index| {
 ///     println!("Selected option index: {}", index);
 /// });
 /// ```
-pub fn MaterialRadioGroup<F>(options: &[impl AsRef<str>], selected_index: usize, on_select: F)
+pub fn RadioGroup<F>(options: &[impl AsRef<str>], selected_index: usize, on_select: F)
 where
     F: Fn(usize) + Send + Sync + 'static,
 {
@@ -113,7 +113,7 @@ where
 
                 let radio_entity = commands
                     .spawn(radio_bundle)
-                    .insert(MaterialRadioGroupItemHandler {
+                    .insert(RadioGroupItemHandler {
                         index,
                         on_select: on_select_clone,
                     })
@@ -141,8 +141,8 @@ where
     });
 }
 
-/// Material Design radio button composable with configuration
-pub fn MaterialRadioConfigured<F>(config: MaterialRadioConfig, on_select: F)
+/// Design radio button composable with configuration
+pub fn RadioConfigured<F>(config: RadioConfig, on_select: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -170,7 +170,7 @@ where
 
             let radio_entity = commands
                 .spawn(radio_bundle)
-                .insert(MaterialRadioSelectHandler {
+                .insert(RadioSelectHandler {
                     on_select: on_select.clone(),
                 })
                 .id();
@@ -201,15 +201,15 @@ where
     });
 }
 
-/// Configuration for a Material radio button
+/// Configuration for a radio button
 #[derive(Clone)]
-pub struct MaterialRadioConfig {
+pub struct RadioConfig {
     pub label: Option<String>,
     pub selected: bool,
     pub disabled: bool,
 }
 
-impl MaterialRadioConfig {
+impl RadioConfig {
     pub fn new() -> Self {
         Self {
             label: None,
@@ -234,7 +234,7 @@ impl MaterialRadioConfig {
     }
 }
 
-impl Default for MaterialRadioConfig {
+impl Default for RadioConfig {
     fn default() -> Self {
         Self::new()
     }
@@ -242,13 +242,13 @@ impl Default for MaterialRadioConfig {
 
 /// Component to handle radio selection events
 #[derive(Component)]
-pub struct MaterialRadioSelectHandler {
+pub struct RadioSelectHandler {
     pub on_select: Arc<dyn Fn() + Send + Sync>,
 }
 
 /// Component to handle radio group item selection events
 #[derive(Component)]
-pub struct MaterialRadioGroupItemHandler {
+pub struct RadioGroupItemHandler {
     pub index: usize,
     pub on_select: Arc<dyn Fn(usize) + Send + Sync>,
 }

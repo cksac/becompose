@@ -1,4 +1,4 @@
-//! Material Text Field Composable
+//! Text Field Composable
 //!
 //! Wraps bevy_material_ui TextField component as a BECOMPOSE composable.
 
@@ -9,51 +9,51 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design filled text field composable
+/// Design filled text field composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialFilledTextField("Username", "", |value| {
+/// FilledTextField("Username", "", |value| {
 ///     println!("Text changed: {}", value);
 /// });
 /// ```
-pub fn MaterialFilledTextField<F>(
+pub fn FilledTextField<F>(
     label: impl Into<String>,
     initial_value: impl Into<String>,
     on_change: F,
 ) where
     F: Fn(String) + Send + Sync + 'static,
 {
-    MaterialTextFieldComposable(label, initial_value, TextFieldVariant::Filled, on_change);
+    TextField(label, initial_value, TextFieldVariant::Filled, on_change);
 }
 
-/// Material Design outlined text field composable
+/// Design outlined text field composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialOutlinedTextField("Email", "", |value| {
+/// OutlinedTextField("Email", "", |value| {
 ///     println!("Email changed: {}", value);
 /// });
 /// ```
-pub fn MaterialOutlinedTextField<F>(
+pub fn OutlinedTextField<F>(
     label: impl Into<String>,
     initial_value: impl Into<String>,
     on_change: F,
 ) where
     F: Fn(String) + Send + Sync + 'static,
 {
-    MaterialTextFieldComposable(label, initial_value, TextFieldVariant::Outlined, on_change);
+    TextField(label, initial_value, TextFieldVariant::Outlined, on_change);
 }
 
-/// Material Design text field composable with variant
+/// Design text field composable with variant
 ///
 /// # Example
 /// ```ignore
-/// MaterialTextFieldComposable("Name", "", TextFieldVariant::Filled, |value| {
+/// TextField("Name", "", TextFieldVariant::Filled, |value| {
 ///     println!("Name: {}", value);
 /// });
 /// ```
-pub fn MaterialTextFieldComposable<F>(
+pub fn TextField<F>(
     label: impl Into<String>,
     initial_value: impl Into<String>,
     variant: TextFieldVariant,
@@ -75,7 +75,7 @@ pub fn MaterialTextFieldComposable<F>(
 
             commands
                 .spawn(text_field_bundle)
-                .insert(MaterialTextFieldChangeHandler {
+                .insert(TextFieldChangeHandler {
                     on_change: on_change.clone(),
                 })
                 .id()
@@ -83,9 +83,9 @@ pub fn MaterialTextFieldComposable<F>(
     });
 }
 
-/// Material Design text field composable with full configuration
-pub fn MaterialTextFieldConfigured<F, S>(
-    config: MaterialTextFieldConfig,
+/// Design text field composable with full configuration
+pub fn TextFieldConfigured<F, S>(
+    config: TextFieldConfig,
     on_change: F,
     on_submit: S,
 ) where
@@ -131,10 +131,10 @@ pub fn MaterialTextFieldConfigured<F, S>(
 
             commands
                 .spawn(text_field_bundle)
-                .insert(MaterialTextFieldChangeHandler {
+                .insert(TextFieldChangeHandler {
                     on_change: on_change.clone(),
                 })
-                .insert(MaterialTextFieldSubmitHandler {
+                .insert(TextFieldSubmitHandler {
                     on_submit: on_submit.clone(),
                 })
                 .id()
@@ -142,9 +142,9 @@ pub fn MaterialTextFieldConfigured<F, S>(
     });
 }
 
-/// Configuration for a Material text field
+/// Configuration for a text field
 #[derive(Clone)]
-pub struct MaterialTextFieldConfig {
+pub struct TextFieldConfig {
     pub label: Option<String>,
     pub value: Option<String>,
     pub placeholder: Option<String>,
@@ -156,7 +156,7 @@ pub struct MaterialTextFieldConfig {
     pub trailing_icon: Option<String>,
 }
 
-impl MaterialTextFieldConfig {
+impl TextFieldConfig {
     pub fn new() -> Self {
         Self {
             label: None,
@@ -227,7 +227,7 @@ impl MaterialTextFieldConfig {
     }
 }
 
-impl Default for MaterialTextFieldConfig {
+impl Default for TextFieldConfig {
     fn default() -> Self {
         Self::new()
     }
@@ -235,12 +235,12 @@ impl Default for MaterialTextFieldConfig {
 
 /// Component to handle text field change events
 #[derive(Component)]
-pub struct MaterialTextFieldChangeHandler {
+pub struct TextFieldChangeHandler {
     pub on_change: Arc<dyn Fn(String) + Send + Sync>,
 }
 
 /// Component to handle text field submit events
 #[derive(Component)]
-pub struct MaterialTextFieldSubmitHandler {
+pub struct TextFieldSubmitHandler {
     pub on_submit: Arc<dyn Fn(String) + Send + Sync>,
 }

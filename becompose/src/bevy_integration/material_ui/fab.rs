@@ -1,4 +1,4 @@
-//! Material FAB (Floating Action Button) Composable
+//! FAB (Floating Action Button) Composable
 //!
 //! Wraps bevy_material_ui FAB component as a BECOMPOSE composable.
 
@@ -9,15 +9,15 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design FAB composable
+/// Design FAB composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialFabComposable("add", || {
+/// Fab("add", || {
 ///     println!("FAB clicked!");
 /// });
 /// ```
-pub fn MaterialFabComposable<F>(icon: impl Into<String>, on_click: F)
+pub fn Fab<F>(icon: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -30,7 +30,7 @@ where
 
             commands
                 .spawn(fab_bundle)
-                .insert(MaterialFabClickHandler {
+                .insert(FabClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -38,15 +38,15 @@ where
     });
 }
 
-/// Material Design small FAB composable
+/// Design small FAB composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialSmallFab("edit", || {
+/// SmallFab("edit", || {
 ///     println!("Small FAB clicked!");
 /// });
 /// ```
-pub fn MaterialSmallFab<F>(icon: impl Into<String>, on_click: F)
+pub fn SmallFab<F>(icon: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -59,7 +59,7 @@ where
 
             commands
                 .spawn(fab_bundle)
-                .insert(MaterialFabClickHandler {
+                .insert(FabClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -67,15 +67,15 @@ where
     });
 }
 
-/// Material Design large FAB composable
+/// Design large FAB composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialLargeFab("add", || {
+/// LargeFab("add", || {
 ///     println!("Large FAB clicked!");
 /// });
 /// ```
-pub fn MaterialLargeFab<F>(icon: impl Into<String>, on_click: F)
+pub fn LargeFab<F>(icon: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -88,7 +88,7 @@ where
 
             commands
                 .spawn(fab_bundle)
-                .insert(MaterialFabClickHandler {
+                .insert(FabClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -96,15 +96,15 @@ where
     });
 }
 
-/// Material Design extended FAB composable
+/// Design extended FAB composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialExtendedFab("add", "Create", || {
+/// ExtendedFab("add", "Create", || {
 ///     println!("Extended FAB clicked!");
 /// });
 /// ```
-pub fn MaterialExtendedFab<F>(icon: impl Into<String>, label: impl Into<String>, on_click: F)
+pub fn ExtendedFab<F>(icon: impl Into<String>, label: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -118,7 +118,7 @@ where
 
             commands
                 .spawn(fab_bundle)
-                .insert(MaterialFabClickHandler {
+                .insert(FabClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -126,8 +126,8 @@ where
     });
 }
 
-/// Material Design FAB composable with full configuration
-pub fn MaterialFabConfigured<F>(config: MaterialFabConfig, on_click: F)
+/// Design FAB composable with full configuration
+pub fn FabConfigured<F>(config: FabConfig, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -158,7 +158,7 @@ where
 
             commands
                 .spawn(fab_bundle)
-                .insert(MaterialFabClickHandler {
+                .insert(FabClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -166,9 +166,9 @@ where
     });
 }
 
-/// Configuration for a Material FAB
+/// Configuration for a FAB
 #[derive(Clone)]
-pub struct MaterialFabConfig {
+pub struct FabConfig {
     pub icon: String,
     pub label: Option<String>,
     pub size: FabSize,
@@ -176,7 +176,7 @@ pub struct MaterialFabConfig {
     pub lowered: bool,
 }
 
-impl MaterialFabConfig {
+impl FabConfig {
     pub fn new(icon: impl Into<String>) -> Self {
         Self {
             icon: icon.into(),
@@ -226,6 +226,6 @@ impl MaterialFabConfig {
 
 /// Component to handle FAB click events
 #[derive(Component)]
-pub struct MaterialFabClickHandler {
+pub struct FabClickHandler {
     pub on_click: Arc<dyn Fn() + Send + Sync>,
 }

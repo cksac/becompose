@@ -1,4 +1,4 @@
-//! Material Divider Composable
+//! Divider Composable
 //!
 //! Wraps bevy_material_ui Divider component as a BECOMPOSE composable.
 
@@ -7,17 +7,17 @@ use bevy::prelude::*;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design horizontal divider composable
+/// Design horizontal divider composable
 ///
 /// # Example
 /// ```ignore
 /// Column(Modifiers::new(), || {
 ///     Text("Above divider", TextStyle::body());
-///     MaterialDivider();
+///     Divider();
 ///     Text("Below divider", TextStyle::body());
 /// });
 /// ```
-pub fn MaterialDivider() {
+pub fn Divider() {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             commands
@@ -34,17 +34,17 @@ pub fn MaterialDivider() {
     });
 }
 
-/// Material Design vertical divider composable
+/// Design vertical divider composable
 ///
 /// # Example
 /// ```ignore
 /// Row(Modifiers::new(), || {
 ///     Text("Left", TextStyle::body());
-///     MaterialVerticalDivider();
+///     VerticalDivider();
 ///     Text("Right", TextStyle::body());
 /// });
 /// ```
-pub fn MaterialVerticalDivider() {
+pub fn VerticalDivider() {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             commands
@@ -61,13 +61,13 @@ pub fn MaterialVerticalDivider() {
     });
 }
 
-/// Material Design divider composable with inset
+/// Design divider composable with inset
 ///
 /// # Example
 /// ```ignore
-/// MaterialDividerWithInset(16.0); // 16px inset on both sides
+/// DividerWithInset(16.0); // 16px inset on both sides
 /// ```
-pub fn MaterialDividerWithInset(inset: f32) {
+pub fn DividerWithInset(inset: f32) {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             commands
@@ -85,8 +85,8 @@ pub fn MaterialDividerWithInset(inset: f32) {
     });
 }
 
-/// Material Design divider composable with configuration
-pub fn MaterialDividerConfigured(config: MaterialDividerConfig) {
+/// Design divider composable with configuration
+pub fn DividerConfigured(config: DividerConfig) {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             let (width, height) = if config.vertical {
@@ -116,16 +116,16 @@ pub fn MaterialDividerConfigured(config: MaterialDividerConfig) {
     });
 }
 
-/// Configuration for a Material divider
+/// Configuration for a divider
 #[derive(Clone)]
-pub struct MaterialDividerConfig {
+pub struct DividerConfig {
     pub vertical: bool,
     pub inset: f32,
     pub thickness: f32,
     pub color: Option<Color>,
 }
 
-impl MaterialDividerConfig {
+impl DividerConfig {
     pub fn new() -> Self {
         Self {
             vertical: false,
@@ -161,7 +161,7 @@ impl MaterialDividerConfig {
     }
 }
 
-impl Default for MaterialDividerConfig {
+impl Default for DividerConfig {
     fn default() -> Self {
         Self::new()
     }

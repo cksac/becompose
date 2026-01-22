@@ -1,4 +1,4 @@
-//! Material Dialog Composable
+//! Dialog Composable
 //!
 //! Wraps bevy_material_ui Dialog component as a BECOMPOSE composable.
 
@@ -9,18 +9,18 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child_with_children;
 
-/// Material Design dialog composable
+/// Design dialog composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialDialogComposable(
+/// Dialog(
 ///     "Confirm Action",
 ///     "Are you sure you want to proceed?",
 ///     || println!("Confirmed!"),
 ///     || println!("Cancelled"),
 /// );
 /// ```
-pub fn MaterialDialogComposable<F1, F2>(
+pub fn Dialog<F1, F2>(
     title: impl Into<String>,
     content: impl Into<String>,
     on_confirm: F1,
@@ -54,7 +54,7 @@ pub fn MaterialDialogComposable<F1, F2>(
                         BackgroundColor(theme.surface_container_high),
                         BorderRadius::all(Val::Px(28.0)),
                     ))
-                    .insert(MaterialDialogHandlers {
+                    .insert(DialogHandlers {
                         on_confirm: on_confirm.clone(),
                         on_cancel: on_cancel.clone(),
                     })
@@ -67,24 +67,24 @@ pub fn MaterialDialogComposable<F1, F2>(
     });
 }
 
-/// Material Design dialog composable with custom content
+/// Design dialog composable with custom content
 ///
 /// # Example
 /// ```ignore
 /// MaterialDialogWithContent(
-///     MaterialDialogConfig::new()
+///     DialogConfig::new()
 ///         .title("Settings")
 ///         .on_confirm(|| save_settings())
 ///         .on_cancel(|| discard_changes()),
 ///     || {
 ///         // Custom dialog content
 ///         Column(Modifiers::new(), || {
-///             MaterialSwitchComposable("Enable notifications", true, |_| {});
+///             Switch("Enable notifications", true, |_| {});
 ///         });
 ///     }
 /// );
 /// ```
-pub fn MaterialDialogWithContent<C>(config: MaterialDialogConfig, content: C)
+pub fn DialogWithContent<C>(config: DialogConfig, content: C)
 where
     C: FnOnce(),
 {
@@ -137,7 +137,7 @@ where
 
                 // Insert handlers
                 if on_confirm.is_some() || on_cancel.is_some() {
-                    commands.entity(entity).insert(MaterialDialogHandlers {
+                    commands.entity(entity).insert(DialogHandlers {
                         on_confirm: on_confirm.unwrap_or_else(|| Arc::new(|| {})),
                         on_cancel: on_cancel.unwrap_or_else(|| Arc::new(|| {})),
                     });
@@ -150,16 +150,16 @@ where
     });
 }
 
-/// Configuration for a Material dialog
+/// Configuration for a dialog
 #[derive(Clone)]
-pub struct MaterialDialogConfig {
+pub struct DialogConfig {
     pub title: Option<String>,
     pub modal: bool,
     pub on_confirm: Option<Arc<dyn Fn() + Send + Sync>>,
     pub on_cancel: Option<Arc<dyn Fn() + Send + Sync>>,
 }
 
-impl MaterialDialogConfig {
+impl DialogConfig {
     pub fn new() -> Self {
         Self {
             title: None,
@@ -190,7 +190,7 @@ impl MaterialDialogConfig {
     }
 }
 
-impl Default for MaterialDialogConfig {
+impl Default for DialogConfig {
     fn default() -> Self {
         Self::new()
     }
@@ -198,7 +198,7 @@ impl Default for MaterialDialogConfig {
 
 /// Component to handle dialog events
 #[derive(Component)]
-pub struct MaterialDialogHandlers {
+pub struct DialogHandlers {
     pub on_confirm: Arc<dyn Fn() + Send + Sync>,
     pub on_cancel: Arc<dyn Fn() + Send + Sync>,
 }

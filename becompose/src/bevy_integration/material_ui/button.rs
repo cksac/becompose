@@ -1,4 +1,4 @@
-//! Material Button Composables
+//! Button Composables
 //!
 //! Wraps bevy_material_ui Button components as BECOMPOSE composables.
 
@@ -9,78 +9,78 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design filled button composable
+/// Design filled button composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialFilledButton("Submit", || submit_form());
+/// FilledButton("Submit", || submit_form());
 /// ```
-pub fn MaterialFilledButton<F>(label: impl Into<String>, on_click: F)
+pub fn FilledButton<F>(label: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialButtonComposable(label, ButtonVariant::Filled, on_click);
+    Button(label, ButtonVariant::Filled, on_click);
 }
 
-/// Material Design outlined button composable
+/// Design outlined button composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialOutlinedButton("Cancel", || cancel());
+/// OutlinedButton("Cancel", || cancel());
 /// ```
-pub fn MaterialOutlinedButton<F>(label: impl Into<String>, on_click: F)
+pub fn OutlinedButton<F>(label: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialButtonComposable(label, ButtonVariant::Outlined, on_click);
+    Button(label, ButtonVariant::Outlined, on_click);
 }
 
-/// Material Design text button composable
+/// Design text button composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialTextButton("Learn More", || show_info());
+/// TextButton("Learn More", || show_info());
 /// ```
-pub fn MaterialTextButton<F>(label: impl Into<String>, on_click: F)
+pub fn TextButton<F>(label: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialButtonComposable(label, ButtonVariant::Text, on_click);
+    Button(label, ButtonVariant::Text, on_click);
 }
 
-/// Material Design elevated button composable
+/// Design elevated button composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialElevatedButton("Save", || save_data());
+/// ElevatedButton("Save", || save_data());
 /// ```
-pub fn MaterialElevatedButton<F>(label: impl Into<String>, on_click: F)
+pub fn ElevatedButton<F>(label: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialButtonComposable(label, ButtonVariant::Elevated, on_click);
+    Button(label, ButtonVariant::Elevated, on_click);
 }
 
-/// Material Design filled tonal button composable
+/// Design filled tonal button composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialTonalButton("Add", || add_item());
+/// TonalButton("Add", || add_item());
 /// ```
-pub fn MaterialTonalButton<F>(label: impl Into<String>, on_click: F)
+pub fn TonalButton<F>(label: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialButtonComposable(label, ButtonVariant::FilledTonal, on_click);
+    Button(label, ButtonVariant::FilledTonal, on_click);
 }
 
-/// Material Design button composable with configurable variant
+/// Design button composable with configurable variant
 ///
 /// # Example
 /// ```ignore
-/// MaterialButtonComposable("Click Me", ButtonVariant::Filled, || handle_click());
+/// Button("Click Me", ButtonVariant::Filled, || handle_click());
 /// ```
-pub fn MaterialButtonComposable<F>(label: impl Into<String>, variant: ButtonVariant, on_click: F)
+pub fn Button<F>(label: impl Into<String>, variant: ButtonVariant, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -95,7 +95,7 @@ where
 
             commands
                 .spawn(button_bundle)
-                .insert(MaterialButtonClickHandler {
+                .insert(ButtonClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -103,19 +103,19 @@ where
     });
 }
 
-/// Material Design button composable with full configuration
+/// Design button composable with full configuration
 ///
 /// # Example
 /// ```ignore
-/// MaterialButtonConfigured(
-///     MaterialButtonConfig::new("Save")
+/// ButtonConfigured(
+///     ButtonConfig::new("Save")
 ///         .variant(ButtonVariant::Filled)
 ///         .icon("save")
 ///         .disabled(false),
 ///     || save_data()
 /// );
 /// ```
-pub fn MaterialButtonConfigured<F>(config: MaterialButtonConfig, on_click: F)
+pub fn ButtonConfigured<F>(config: ButtonConfig, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -142,7 +142,7 @@ where
 
             commands
                 .spawn(button_bundle)
-                .insert(MaterialButtonClickHandler {
+                .insert(ButtonClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -150,9 +150,9 @@ where
     });
 }
 
-/// Configuration for a Material button
+/// Configuration for a button
 #[derive(Clone)]
-pub struct MaterialButtonConfig {
+pub struct ButtonConfig {
     pub label: String,
     pub variant: ButtonVariant,
     pub disabled: bool,
@@ -160,7 +160,7 @@ pub struct MaterialButtonConfig {
     pub trailing_icon: Option<String>,
 }
 
-impl MaterialButtonConfig {
+impl ButtonConfig {
     pub fn new(label: impl Into<String>) -> Self {
         Self {
             label: label.into(),
@@ -194,6 +194,6 @@ impl MaterialButtonConfig {
 
 /// Component to handle button click events and call the user's callback
 #[derive(Component)]
-pub struct MaterialButtonClickHandler {
+pub struct ButtonClickHandler {
     pub on_click: Arc<dyn Fn() + Send + Sync>,
 }

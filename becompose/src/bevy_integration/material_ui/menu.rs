@@ -1,4 +1,4 @@
-//! Material Menu Composable
+//! Menu Composable
 //!
 //! Wraps bevy_material_ui Menu component as a BECOMPOSE composable.
 
@@ -11,17 +11,17 @@ use crate::bevy_integration::material_ui::{
     spawn_material_child, spawn_material_child_with_children,
 };
 
-/// Material Design menu composable
+/// Design menu composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialMenuComposable(|| {
-///     MaterialMenuItem("Cut", || cut());
-///     MaterialMenuItem("Copy", || copy());
-///     MaterialMenuItem("Paste", || paste());
+/// Menu(|| {
+///     MenuItem("Cut", || cut());
+///     MenuItem("Copy", || copy());
+///     MenuItem("Paste", || paste());
 /// });
 /// ```
-pub fn MaterialMenuComposable<F>(content: F)
+pub fn Menu<F>(content: F)
 where
     F: FnOnce(),
 {
@@ -49,13 +49,13 @@ where
     });
 }
 
-/// Material Design menu item composable
+/// Design menu item composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialMenuItem("Settings", || open_settings());
+/// MenuItem("Settings", || open_settings());
 /// ```
-pub fn MaterialMenuItem<F>(label: impl Into<String>, on_select: F)
+pub fn MenuItem<F>(label: impl Into<String>, on_select: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -68,7 +68,7 @@ where
 
             commands
                 .spawn(menu_item)
-                .insert(MaterialMenuItemSelectHandler {
+                .insert(MenuItemSelectHandler {
                     on_select: on_select.clone(),
                 })
                 .id()
@@ -76,13 +76,13 @@ where
     });
 }
 
-/// Material Design menu item composable with icon
+/// Design menu item composable with icon
 ///
 /// # Example
 /// ```ignore
-/// MaterialMenuItemWithIcon("settings", "Settings", || open_settings());
+/// MenuItemWithIcon("settings", "Settings", || open_settings());
 /// ```
-pub fn MaterialMenuItemWithIcon<F>(icon: impl Into<String>, label: impl Into<String>, on_select: F)
+pub fn MenuItemWithIcon<F>(icon: impl Into<String>, label: impl Into<String>, on_select: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -98,7 +98,7 @@ where
 
             commands
                 .spawn(menu_item)
-                .insert(MaterialMenuItemSelectHandler {
+                .insert(MenuItemSelectHandler {
                     on_select: on_select.clone(),
                 })
                 .id()
@@ -106,8 +106,8 @@ where
     });
 }
 
-/// Material Design menu item composable with configuration
-pub fn MaterialMenuItemConfigured<F>(config: MaterialMenuItemConfig, on_select: F)
+/// Design menu item composable with configuration
+pub fn MenuItemConfigured<F>(config: MenuItemConfig, on_select: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -133,7 +133,7 @@ where
 
             commands
                 .spawn(menu_item)
-                .insert(MaterialMenuItemSelectHandler {
+                .insert(MenuItemSelectHandler {
                     on_select: on_select.clone(),
                 })
                 .id()
@@ -141,13 +141,13 @@ where
     });
 }
 
-/// Material Design menu divider composable
-pub fn MaterialMenuDivider() {
+/// Design menu divider composable
+pub fn MenuDivider() {
     with_implicit_scope(|| {
         spawn_material_child(move |commands, theme| {
             commands
                 .spawn((
-                    MenuDivider,
+                    bevy_material_ui::menu::MenuDivider,
                     Node {
                         width: Val::Percent(100.0),
                         height: Val::Px(1.0),
@@ -161,16 +161,15 @@ pub fn MaterialMenuDivider() {
     });
 }
 
-/// Configuration for a Material menu item
 #[derive(Clone)]
-pub struct MaterialMenuItemConfig {
+pub struct MenuItemConfig {
     pub label: String,
     pub leading_icon: Option<String>,
     pub trailing_icon: Option<String>,
     pub disabled: bool,
 }
 
-impl MaterialMenuItemConfig {
+impl MenuItemConfig {
     pub fn new(label: impl Into<String>) -> Self {
         Self {
             label: label.into(),
@@ -196,8 +195,7 @@ impl MaterialMenuItemConfig {
     }
 }
 
-/// Component to handle menu item selection
 #[derive(Component)]
-pub struct MaterialMenuItemSelectHandler {
+pub struct MenuItemSelectHandler {
     pub on_select: Arc<dyn Fn() + Send + Sync>,
 }

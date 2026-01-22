@@ -1,4 +1,4 @@
-//! Material List Composable
+//! List Composable
 //!
 //! Wraps bevy_material_ui List component as a BECOMPOSE composable.
 
@@ -11,16 +11,16 @@ use crate::bevy_integration::material_ui::{
     spawn_material_child, spawn_material_child_with_children,
 };
 
-/// Material Design list composable
+/// Design list composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialListComposable(|| {
-///     MaterialListItem("Item 1", || println!("Item 1 clicked"));
-///     MaterialListItem("Item 2", || println!("Item 2 clicked"));
+/// List(|| {
+///     ListItem("Item 1", || println!("Item 1 clicked"));
+///     ListItem("Item 2", || println!("Item 2 clicked"));
 /// });
 /// ```
-pub fn MaterialListComposable<F>(content: F)
+pub fn List<F>(content: F)
 where
     F: FnOnce(),
 {
@@ -44,13 +44,13 @@ where
     });
 }
 
-/// Material Design list item composable
+/// Design list item composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialListItem("Settings", || open_settings());
+/// ListItem("Settings", || open_settings());
 /// ```
-pub fn MaterialListItem<F>(headline: impl Into<String>, on_click: F)
+pub fn ListItem<F>(headline: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -63,7 +63,7 @@ where
 
             commands
                 .spawn(list_item)
-                .insert(MaterialListItemClickHandler {
+                .insert(ListItemClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -71,13 +71,13 @@ where
     });
 }
 
-/// Material Design list item composable with supporting text
+/// Design list item composable with supporting text
 ///
 /// # Example
 /// ```ignore
-/// MaterialListItemWithSupporting("Wi-Fi", "Connected to Home Network", || open_wifi_settings());
+/// ListItemWithSupporting("Wi-Fi", "Connected to Home Network", || open_wifi_settings());
 /// ```
-pub fn MaterialListItemWithSupporting<F>(
+pub fn ListItemWithSupporting<F>(
     headline: impl Into<String>,
     supporting: impl Into<String>,
     on_click: F,
@@ -96,7 +96,7 @@ pub fn MaterialListItemWithSupporting<F>(
 
             commands
                 .spawn(list_item)
-                .insert(MaterialListItemClickHandler {
+                .insert(ListItemClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -104,8 +104,8 @@ pub fn MaterialListItemWithSupporting<F>(
     });
 }
 
-/// Material Design list item composable with configuration
-pub fn MaterialListItemConfigured<F>(config: MaterialListItemConfig, on_click: F)
+/// Design list item composable with configuration
+pub fn ListItemConfigured<F>(config: ListItemConfig, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -139,7 +139,7 @@ where
 
             commands
                 .spawn(list_item)
-                .insert(MaterialListItemClickHandler {
+                .insert(ListItemClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -147,9 +147,9 @@ where
     });
 }
 
-/// Configuration for a Material list item
+/// Configuration for a list item
 #[derive(Clone)]
-pub struct MaterialListItemConfig {
+pub struct ListItemConfig {
     pub headline: String,
     pub supporting_text: Option<String>,
     pub trailing_text: Option<String>,
@@ -158,7 +158,7 @@ pub struct MaterialListItemConfig {
     pub disabled: bool,
 }
 
-impl MaterialListItemConfig {
+impl ListItemConfig {
     pub fn new(headline: impl Into<String>) -> Self {
         Self {
             headline: headline.into(),
@@ -198,6 +198,6 @@ impl MaterialListItemConfig {
 
 /// Component to handle list item click events
 #[derive(Component)]
-pub struct MaterialListItemClickHandler {
+pub struct ListItemClickHandler {
     pub on_click: Arc<dyn Fn() + Send + Sync>,
 }

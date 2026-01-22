@@ -1,4 +1,4 @@
-//! Material Card Composable
+//! Card Composable
 //!
 //! Wraps bevy_material_ui Card component as a BECOMPOSE composable.
 
@@ -9,63 +9,63 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child_with_children;
 
-/// Material Design elevated card composable
+/// Design elevated card composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialElevatedCard(|| {
+/// ElevatedCard(|| {
 ///     Text("Card content", TextStyle::body());
 /// });
 /// ```
-pub fn MaterialElevatedCard<F>(content: F)
+pub fn ElevatedCard<F>(content: F)
 where
     F: FnOnce(),
 {
-    MaterialCardComposable(CardVariant::Elevated, content);
+    Card(CardVariant::Elevated, content);
 }
 
-/// Material Design filled card composable
+/// Design filled card composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialFilledCard(|| {
+/// FilledCard(|| {
 ///     Text("Card content", TextStyle::body());
 /// });
 /// ```
-pub fn MaterialFilledCard<F>(content: F)
+pub fn FilledCard<F>(content: F)
 where
     F: FnOnce(),
 {
-    MaterialCardComposable(CardVariant::Filled, content);
+    Card(CardVariant::Filled, content);
 }
 
-/// Material Design outlined card composable
+/// Design outlined card composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialOutlinedCard(|| {
+/// OutlinedCard(|| {
 ///     Text("Card content", TextStyle::body());
 /// });
 /// ```
-pub fn MaterialOutlinedCard<F>(content: F)
+pub fn OutlinedCard<F>(content: F)
 where
     F: FnOnce(),
 {
-    MaterialCardComposable(CardVariant::Outlined, content);
+    Card(CardVariant::Outlined, content);
 }
 
-/// Material Design card composable with variant
+/// Design card composable with variant
 ///
 /// # Example
 /// ```ignore
-/// MaterialCardComposable(CardVariant::Elevated, || {
+/// Card(CardVariant::Elevated, || {
 ///     Column(Modifiers::new().padding(16.0), || {
 ///         Text("Title", TextStyle::title());
 ///         Text("Description", TextStyle::body());
 ///     });
 /// });
 /// ```
-pub fn MaterialCardComposable<F>(variant: CardVariant, content: F)
+pub fn Card<F>(variant: CardVariant, content: F)
 where
     F: FnOnce(),
 {
@@ -81,17 +81,17 @@ where
     });
 }
 
-/// Material Design clickable card composable
+/// Design clickable card composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialClickableCard(CardVariant::Elevated, || {
+/// ClickableCard(CardVariant::Elevated, || {
 ///     println!("Card clicked!");
 /// }, || {
 ///     Text("Click me!", TextStyle::body());
 /// });
 /// ```
-pub fn MaterialClickableCard<F, C>(variant: CardVariant, on_click: F, content: C)
+pub fn ClickableCard<F, C>(variant: CardVariant, on_click: F, content: C)
 where
     F: Fn() + Send + Sync + 'static,
     C: FnOnce(),
@@ -105,7 +105,7 @@ where
 
                 commands
                     .spawn(card_bundle)
-                    .insert(MaterialCardClickHandler {
+                    .insert(CardClickHandler {
                         on_click: on_click.clone(),
                     })
                     .id()
@@ -115,8 +115,8 @@ where
     });
 }
 
-/// Material Design card composable with full configuration
-pub fn MaterialCardConfigured<C>(config: MaterialCardConfig, content: C)
+/// Design card composable with full configuration
+pub fn CardConfigured<C>(config: CardConfig, content: C)
 where
     C: FnOnce(),
 {
@@ -140,7 +140,7 @@ where
                 let mut entity_commands = commands.spawn(card_bundle);
 
                 if let Some(on_click) = on_click {
-                    entity_commands.insert(MaterialCardClickHandler { on_click });
+                    entity_commands.insert(CardClickHandler { on_click });
                 }
 
                 entity_commands.id()
@@ -150,16 +150,16 @@ where
     });
 }
 
-/// Configuration for a Material card
+/// Configuration for a card
 #[derive(Clone)]
-pub struct MaterialCardConfig {
+pub struct CardConfig {
     pub variant: CardVariant,
     pub clickable: bool,
     pub draggable: bool,
     pub on_click: Option<Arc<dyn Fn() + Send + Sync>>,
 }
 
-impl MaterialCardConfig {
+impl CardConfig {
     pub fn new() -> Self {
         Self {
             variant: CardVariant::Elevated,
@@ -206,7 +206,7 @@ impl MaterialCardConfig {
     }
 }
 
-impl Default for MaterialCardConfig {
+impl Default for CardConfig {
     fn default() -> Self {
         Self::new()
     }
@@ -214,6 +214,6 @@ impl Default for MaterialCardConfig {
 
 /// Component to handle card click events
 #[derive(Component)]
-pub struct MaterialCardClickHandler {
+pub struct CardClickHandler {
     pub on_click: Arc<dyn Fn() + Send + Sync>,
 }

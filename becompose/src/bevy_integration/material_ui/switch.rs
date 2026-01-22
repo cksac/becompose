@@ -1,4 +1,4 @@
-//! Material Switch Composable
+//! Switch Composable
 //!
 //! Wraps bevy_material_ui Switch component as a BECOMPOSE composable.
 
@@ -9,15 +9,15 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design switch composable
+/// Design switch composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialSwitchComposable("Enable notifications", false, |selected| {
+/// Switch("Enable notifications", false, |selected| {
 ///     println!("Switch is now: {}", if selected { "ON" } else { "OFF" });
 /// });
 /// ```
-pub fn MaterialSwitchComposable<F>(label: impl Into<String>, initial_selected: bool, on_change: F)
+pub fn Switch<F>(label: impl Into<String>, initial_selected: bool, on_change: F)
 where
     F: Fn(bool) + Send + Sync + 'static,
 {
@@ -56,7 +56,7 @@ where
 
             let switch_entity = commands
                 .spawn(switch_bundle)
-                .insert(MaterialSwitchChangeHandler {
+                .insert(SwitchChangeHandler {
                     on_change: on_change.clone(),
                 })
                 .id();
@@ -68,8 +68,8 @@ where
     });
 }
 
-/// Material Design switch composable with configuration
-pub fn MaterialSwitchConfigured<F>(config: MaterialSwitchConfig, on_change: F)
+/// Design switch composable with configuration
+pub fn SwitchConfigured<F>(config: SwitchConfig, on_change: F)
 where
     F: Fn(bool) + Send + Sync + 'static,
 {
@@ -117,7 +117,7 @@ where
 
             let switch_entity = commands
                 .spawn(switch_bundle)
-                .insert(MaterialSwitchChangeHandler {
+                .insert(SwitchChangeHandler {
                     on_change: on_change.clone(),
                 })
                 .id();
@@ -129,15 +129,14 @@ where
     });
 }
 
-/// Configuration for a Material switch
 #[derive(Clone)]
-pub struct MaterialSwitchConfig {
+pub struct SwitchConfig {
     pub label: Option<String>,
     pub selected: bool,
     pub disabled: bool,
 }
 
-impl MaterialSwitchConfig {
+impl SwitchConfig {
     pub fn new() -> Self {
         Self {
             label: None,
@@ -162,7 +161,7 @@ impl MaterialSwitchConfig {
     }
 }
 
-impl Default for MaterialSwitchConfig {
+impl Default for SwitchConfig {
     fn default() -> Self {
         Self::new()
     }
@@ -170,6 +169,6 @@ impl Default for MaterialSwitchConfig {
 
 /// Component to handle switch change events
 #[derive(Component)]
-pub struct MaterialSwitchChangeHandler {
+pub struct SwitchChangeHandler {
     pub on_change: Arc<dyn Fn(bool) + Send + Sync>,
 }

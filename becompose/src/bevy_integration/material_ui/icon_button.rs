@@ -1,4 +1,4 @@
-//! Material Icon Button Composable
+//! Icon Button Composable
 //!
 //! Wraps bevy_material_ui IconButton component as a BECOMPOSE composable.
 
@@ -9,68 +9,68 @@ use std::sync::Arc;
 use crate::bevy_integration::composables::with_implicit_scope;
 use crate::bevy_integration::material_ui::spawn_material_child;
 
-/// Material Design standard icon button composable
+/// Design standard icon button composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialIconButtonComposable("favorite", || {
+/// IconButton("favorite", || {
 ///     println!("Icon button clicked!");
 /// });
 /// ```
-pub fn MaterialIconButtonComposable<F>(icon: impl Into<String>, on_click: F)
+pub fn IconButton<F>(icon: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialIconButtonWithVariant(icon, IconButtonVariant::Standard, on_click);
+    IconButtonWithVariant(icon, IconButtonVariant::Standard, on_click);
 }
 
-/// Material Design filled icon button composable
+/// Design filled icon button composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialFilledIconButton("add", || {
+/// FilledIconButton("add", || {
 ///     println!("Filled icon button clicked!");
 /// });
 /// ```
-pub fn MaterialFilledIconButton<F>(icon: impl Into<String>, on_click: F)
+pub fn FilledIconButton<F>(icon: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialIconButtonWithVariant(icon, IconButtonVariant::Filled, on_click);
+    IconButtonWithVariant(icon, IconButtonVariant::Filled, on_click);
 }
 
-/// Material Design filled tonal icon button composable
+/// Design filled tonal icon button composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialTonalIconButton("edit", || {
+/// TonalIconButton("edit", || {
 ///     println!("Tonal icon button clicked!");
 /// });
 /// ```
-pub fn MaterialTonalIconButton<F>(icon: impl Into<String>, on_click: F)
+pub fn TonalIconButton<F>(icon: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialIconButtonWithVariant(icon, IconButtonVariant::FilledTonal, on_click);
+    IconButtonWithVariant(icon, IconButtonVariant::FilledTonal, on_click);
 }
 
-/// Material Design outlined icon button composable
+/// Design outlined icon button composable
 ///
 /// # Example
 /// ```ignore
-/// MaterialOutlinedIconButton("delete", || {
+/// OutlinedIconButton("delete", || {
 ///     println!("Outlined icon button clicked!");
 /// });
 /// ```
-pub fn MaterialOutlinedIconButton<F>(icon: impl Into<String>, on_click: F)
+pub fn OutlinedIconButton<F>(icon: impl Into<String>, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
-    MaterialIconButtonWithVariant(icon, IconButtonVariant::Outlined, on_click);
+    IconButtonWithVariant(icon, IconButtonVariant::Outlined, on_click);
 }
 
-/// Material Design icon button composable with variant
-pub fn MaterialIconButtonWithVariant<F>(
+/// Design icon button composable with variant
+pub fn IconButtonWithVariant<F>(
     icon: impl Into<String>,
     variant: IconButtonVariant,
     on_click: F,
@@ -86,7 +86,7 @@ pub fn MaterialIconButtonWithVariant<F>(
 
             commands
                 .spawn(icon_button_bundle)
-                .insert(MaterialIconButtonClickHandler {
+                .insert(IconButtonClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -94,8 +94,8 @@ pub fn MaterialIconButtonWithVariant<F>(
     });
 }
 
-/// Material Design icon button composable with full configuration
-pub fn MaterialIconButtonConfigured<F>(config: MaterialIconButtonConfig, on_click: F)
+/// Design icon button composable with full configuration
+pub fn IconButtonConfigured<F>(config: IconButtonConfig, on_click: F)
 where
     F: Fn() + Send + Sync + 'static,
 {
@@ -117,7 +117,7 @@ where
 
             commands
                 .spawn(icon_button_bundle)
-                .insert(MaterialIconButtonClickHandler {
+                .insert(IconButtonClickHandler {
                     on_click: on_click.clone(),
                 })
                 .id()
@@ -125,16 +125,16 @@ where
     });
 }
 
-/// Configuration for a Material icon button
+/// Configuration for a icon button
 #[derive(Clone)]
-pub struct MaterialIconButtonConfig {
+pub struct IconButtonConfig {
     pub icon: String,
     pub variant: IconButtonVariant,
     pub disabled: bool,
     pub selected: bool,
 }
 
-impl MaterialIconButtonConfig {
+impl IconButtonConfig {
     pub fn new(icon: impl Into<String>) -> Self {
         Self {
             icon: icon.into(),
@@ -182,6 +182,6 @@ impl MaterialIconButtonConfig {
 
 /// Component to handle icon button click events
 #[derive(Component)]
-pub struct MaterialIconButtonClickHandler {
+pub struct IconButtonClickHandler {
     pub on_click: Arc<dyn Fn() + Send + Sync>,
 }
