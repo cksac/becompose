@@ -5,10 +5,15 @@
 
 use bevy::prelude::*;
 use bevy::window::{Window, WindowPlugin};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use super::BecomposePlugin;
+use super::composables::{
+    ScopeId, ScopeMarker, has_dirty_scopes, take_dirty_scopes, 
+    begin_incremental_composition, end_composition, enter_scope, exit_scope, 
+    clear_scope_mapping, get_scope_info, get_scope_entities, 
+    set_parent_for_scope, clear_parent_stack,
+};
 
 /// Configuration for a BECOMPOSE application window
 #[derive(Clone)]
@@ -59,19 +64,17 @@ impl WindowConfig {
 #[derive(Component)]
 pub struct CompositionRoot;
 
-/// Global recomposition trigger - call this to trigger UI rebuild
-static NEEDS_RECOMPOSE: AtomicBool = AtomicBool::new(true);
-
-/// Trigger a recomposition of the UI
-/// Call this when your state changes and you need the UI to update
-pub fn invalidate() {
-    NEEDS_RECOMPOSE.store(true, Ordering::SeqCst);
-}
-
 /// Resource to store the content function for recomposition
 #[derive(Resource)]
 struct ContentFn {
     compose_fn: Arc<Mutex<Box<dyn Fn() + Send + Sync>>>,
+}
+
+/// Resource to track scope-to-entity mappings for incremental updates
+#[derive(Resource, Default)]
+struct ScopeRegistry {
+    /// Tracks if initial composition has happened
+    initial_composition_done: bool,
 }
 
 /// Builder for creating a BECOMPOSE application
@@ -141,6 +144,9 @@ impl BecomposeApp {
 
         // Add BECOMPOSE plugin
         app.add_plugins(BecomposePlugin);
+        
+        // Initialize scope registry
+        app.init_resource::<ScopeRegistry>();
 
         // Store content as a resource for continuous recomposition
         if let Some(content) = self.content {
@@ -153,8 +159,11 @@ impl BecomposeApp {
         // Setup camera on startup
         app.add_systems(Startup, setup_camera);
         
-        // Recompose UI every frame
-        app.add_systems(Update, recompose_ui);
+        // Initial composition on first frame
+        app.add_systems(Startup, initial_composition.after(setup_camera));
+        
+        // Incremental recompose UI when scopes are dirty
+        app.add_systems(Update, incremental_recompose_ui);
 
         app.run();
     }
@@ -165,40 +174,144 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d::default());
 }
 
-/// System that clears and rebuilds UI only when invalidated
-fn recompose_ui(
+/// System that performs the initial full composition
+fn initial_composition(
     mut commands: Commands,
     content: Option<Res<ContentFn>>,
-    roots: Query<Entity, With<CompositionRoot>>,
+    mut registry: ResMut<ScopeRegistry>,
 ) {
-    use super::composables::{begin_composition, end_composition};
+    use super::composables::begin_composition;
     
-    // Only recompose if flagged dirty
-    if !NEEDS_RECOMPOSE.swap(false, Ordering::SeqCst) {
-        return;
-    }
-    
-    // Only recompose if we have content
     let Some(content) = content else { return };
     
-    // Clone the Arc to avoid lifetime issues with the Res
     let compose_fn = content.compose_fn.clone();
-    
-    // Clear previous UI tree
-    for entity in roots.iter() {
-        commands.entity(entity).despawn_recursive();
-    }
     
     // Initialize thread-local composition context
     begin_composition(&mut commands);
     
-    // Recompose UI
+    // Enter root scope (ScopeId(0)) for initial composition
+    enter_scope(ScopeId(0));
+    
+    // Compose UI
     if let Ok(guard) = compose_fn.lock() {
         guard();
     };
     
+    exit_scope();
+    
     // Clean up composition context
     end_composition();
+    
+    registry.initial_composition_done = true;
+}
+
+/// System that performs incremental recomposition for dirty scopes only
+fn incremental_recompose_ui(
+    mut commands: Commands,
+    content: Option<Res<ContentFn>>,
+    roots: Query<Entity, With<CompositionRoot>>,
+    scope_markers: Query<(Entity, &ScopeMarker, Option<&Parent>)>,
+    registry: Res<ScopeRegistry>,
+) {
+    // Only proceed if there are dirty scopes
+    if !has_dirty_scopes() {
+        return;
+    }
+    
+    // Only recompose if we have content and initial composition is done
+    let Some(content) = content else { return };
+    if !registry.initial_composition_done {
+        return;
+    }
+    
+    let dirty_scopes = take_dirty_scopes();
+    
+    // Clone the Arc to avoid lifetime issues with the Res
+    let compose_fn = content.compose_fn.clone();
+    
+    // Check if root scope (0) is dirty - means full recomposition
+    let full_recompose = dirty_scopes.contains(&ScopeId(0)) || dirty_scopes.contains(&ScopeId::root());
+    
+    if full_recompose {
+        // Full recomposition: clear everything and rebuild
+        for entity in roots.iter() {
+            commands.entity(entity).despawn_recursive();
+        }
+        
+        // Clear all scope mappings
+        for scope_id in dirty_scopes.iter() {
+            clear_scope_mapping(*scope_id);
+        }
+        
+        // Initialize thread-local composition context  
+        begin_incremental_composition(&mut commands);
+        
+        // Enter root scope for full recomposition
+        enter_scope(ScopeId(0));
+        
+        // Recompose UI
+        if let Ok(guard) = compose_fn.lock() {
+            guard();
+        };
+        
+        exit_scope();
+        
+        // Clean up composition context
+        end_composition();
+    } else {
+        // Granular recomposition: only rebuild dirty scope subtrees
+        
+        // Find scope entities that need rebuilding
+        let mut scopes_to_rebuild: Vec<(ScopeId, Entity, Option<Entity>)> = Vec::new();
+        
+        for (entity, marker, parent) in scope_markers.iter() {
+            if dirty_scopes.contains(&marker.0) {
+                let parent_entity = parent.map(|p| p.get());
+                scopes_to_rebuild.push((marker.0, entity, parent_entity));
+            }
+        }
+        
+        // Rebuild each dirty scope
+        for (scope_id, scope_entity, _parent_entity) in scopes_to_rebuild {
+            // Get the scope's content function
+            if let Some(scope_info) = get_scope_info(scope_id) {
+                // Despawn only the children of the scope container (preserve the container)
+                // First collect children to despawn
+                let entities_to_despawn = get_scope_entities(scope_id);
+                for entity in entities_to_despawn {
+                    // Don't despawn the scope container itself
+                    if entity != scope_entity {
+                        if let Some(entity_commands) = commands.get_entity(entity) {
+                            entity_commands.despawn_recursive();
+                        }
+                    }
+                }
+                
+                // Also despawn direct children of the scope container
+                commands.entity(scope_entity).despawn_descendants();
+                
+                // Clear scope mapping for this scope
+                clear_scope_mapping(scope_id);
+                
+                // Set up composition context for this scope
+                begin_incremental_composition(&mut commands);
+                
+                // Rebuild inside the scope container
+                set_parent_for_scope(scope_entity);
+                
+                // Enter the scope and recompose
+                enter_scope(scope_id);
+                
+                // Call the scope's content function
+                (scope_info.content_fn)();
+                
+                exit_scope();
+                clear_parent_stack();
+                
+                end_composition();
+            }
+        }
+    }
 }
 
 /// Create and run a simple BECOMPOSE app with just a content function

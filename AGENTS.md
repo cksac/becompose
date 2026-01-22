@@ -36,3 +36,7 @@ cargo fmt
 - Fix the root cause instead of symptoms
 - Don't use //TODO, use todo!("WAHT TO BE DONE")
 - Follow Rust API naming convention https://rust-lang.github.io/api-guidelines/naming.html
+- Don't implment a simplfied version for simplicity, implmentation should repect to the requirement
+- call cargo fmt after editing rust files
+- call cargo check to verify build
+- call cargo clippy after cargo check

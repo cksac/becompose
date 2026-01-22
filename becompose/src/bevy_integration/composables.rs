@@ -23,13 +23,129 @@
 
 use bevy::prelude::*;
 use std::cell::RefCell;
-use std::sync::Arc;
+use std::collections::HashSet;
+use std::sync::{Arc, RwLock};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::modifier::Modifiers;
 use crate::components::TextStyle;
 
 pub use super::app::CompositionRoot;
-pub use super::app::invalidate;
+
+// ============================================================================
+// Scope-based Dirty Tracking
+// ============================================================================
+
+/// Unique identifier for a composition scope
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ScopeId(pub u64);
+
+impl ScopeId {
+    pub fn new() -> Self {
+        static COUNTER: AtomicU64 = AtomicU64::new(1);
+        Self(COUNTER.fetch_add(1, Ordering::SeqCst))
+    }
+    
+    /// Root scope ID (always 0)
+    pub fn root() -> Self {
+        Self(0)
+    }
+}
+
+impl Default for ScopeId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Stored content function for a scope
+pub type ScopedContentFn = Arc<dyn Fn() + Send + Sync>;
+
+/// Registry of scope content functions for granular recomposition
+static SCOPE_REGISTRY: RwLock<Option<std::collections::HashMap<ScopeId, ScopeInfo>>> = RwLock::new(None);
+
+/// Information about a registered scope
+#[derive(Clone)]
+pub struct ScopeInfo {
+    /// The content function to call when recomposing this scope
+    pub content_fn: ScopedContentFn,
+    /// Parent scope (for hierarchy)
+    pub parent_scope: Option<ScopeId>,
+    /// Root entity of this scope's subtree
+    pub root_entity: Option<Entity>,
+}
+
+/// Register a scope with its content function
+pub fn register_scope(scope_id: ScopeId, content_fn: ScopedContentFn, parent_scope: Option<ScopeId>) {
+    let mut guard = SCOPE_REGISTRY.write().unwrap();
+    if guard.is_none() {
+        *guard = Some(std::collections::HashMap::new());
+    }
+    if let Some(map) = guard.as_mut() {
+        map.insert(scope_id, ScopeInfo {
+            content_fn,
+            parent_scope,
+            root_entity: None,
+        });
+    }
+}
+
+/// Update the root entity for a scope
+pub fn set_scope_root_entity(scope_id: ScopeId, entity: Entity) {
+    let mut guard = SCOPE_REGISTRY.write().unwrap();
+    if let Some(map) = guard.as_mut() {
+        if let Some(info) = map.get_mut(&scope_id) {
+            info.root_entity = Some(entity);
+        }
+    }
+}
+
+/// Get scope info
+pub fn get_scope_info(scope_id: ScopeId) -> Option<ScopeInfo> {
+    let guard = SCOPE_REGISTRY.read().unwrap();
+    guard.as_ref().and_then(|map| map.get(&scope_id).cloned())
+}
+
+/// Unregister a scope (for cleanup)
+pub fn unregister_scope(scope_id: ScopeId) {
+    let mut guard = SCOPE_REGISTRY.write().unwrap();
+    if let Some(map) = guard.as_mut() {
+        map.remove(&scope_id);
+    }
+}
+
+/// Global dirty scope registry
+static DIRTY_SCOPES: RwLock<Option<HashSet<ScopeId>>> = RwLock::new(None);
+
+/// Mark a specific scope as dirty (needs recomposition)
+pub fn mark_scope_dirty(scope_id: ScopeId) {
+    let mut guard = DIRTY_SCOPES.write().unwrap();
+    if guard.is_none() {
+        *guard = Some(HashSet::new());
+    }
+    if let Some(set) = guard.as_mut() {
+        set.insert(scope_id);
+    }
+}
+
+/// Check if any scopes are dirty
+pub fn has_dirty_scopes() -> bool {
+    let guard = DIRTY_SCOPES.read().unwrap();
+    guard.as_ref().map(|s| !s.is_empty()).unwrap_or(false)
+}
+
+/// Take all dirty scopes (clears the set)
+pub fn take_dirty_scopes() -> HashSet<ScopeId> {
+    let mut guard = DIRTY_SCOPES.write().unwrap();
+    guard.take().unwrap_or_default()
+}
+
+/// Legacy invalidate function - marks the root scope dirty for full recomposition
+/// Consider using State<T> which automatically tracks scopes for granular updates
+pub fn invalidate() {
+    // For backward compatibility, mark scope 0 as dirty (root)
+    mark_scope_dirty(ScopeId(0));
+}
 
 // ============================================================================
 // Thread-Local Composition Context
@@ -39,6 +155,14 @@ pub use super::app::invalidate;
 struct CompositionContext {
     parent_stack: Vec<Entity>,
     commands: *mut Commands<'static, 'static>,
+    /// Stack of scope IDs for tracking which scope we're in
+    scope_stack: Vec<ScopeId>,
+    /// Map of scope ID to its root entity (for selective rebuilding)
+    scope_root_entities: std::collections::HashMap<ScopeId, Entity>,
+    /// Map of scope ID to ALL entities in that scope (for cleanup)
+    scope_all_entities: std::collections::HashMap<ScopeId, Vec<Entity>>,
+    /// Map of entity to its scope (for cleanup)
+    entity_scopes: std::collections::HashMap<Entity, ScopeId>,
 }
 
 impl CompositionContext {
@@ -46,6 +170,10 @@ impl CompositionContext {
         Self {
             parent_stack: Vec::new(),
             commands: std::ptr::null_mut(),
+            scope_stack: Vec::new(),
+            scope_root_entities: std::collections::HashMap::new(),
+            scope_all_entities: std::collections::HashMap::new(),
+            entity_scopes: std::collections::HashMap::new(),
         }
     }
 }
@@ -60,7 +188,18 @@ pub fn begin_composition(commands: &mut Commands) {
     COMPOSITION_CTX.with(|ctx| {
         let mut ctx = ctx.borrow_mut();
         ctx.parent_stack.clear();
+        // Note: Keep scope_entities and entity_scopes for incremental updates
         // SAFETY: We ensure this pointer is only valid during composition
+        ctx.commands = commands as *mut Commands as *mut Commands<'static, 'static>;
+    });
+}
+
+/// Begin composition for incremental updates (preserves scope mappings)
+pub fn begin_incremental_composition(commands: &mut Commands) {
+    COMPOSITION_CTX.with(|ctx| {
+        let mut ctx = ctx.borrow_mut();
+        ctx.parent_stack.clear();
+        ctx.scope_stack.clear();
         ctx.commands = commands as *mut Commands as *mut Commands<'static, 'static>;
     });
 }
@@ -70,7 +209,89 @@ pub fn end_composition() {
     COMPOSITION_CTX.with(|ctx| {
         let mut ctx = ctx.borrow_mut();
         ctx.parent_stack.clear();
+        ctx.scope_stack.clear();
         ctx.commands = std::ptr::null_mut();
+    });
+}
+
+/// Get the current scope ID (for state tracking)
+pub fn current_scope_id() -> Option<ScopeId> {
+    COMPOSITION_CTX.with(|ctx| {
+        ctx.borrow().scope_stack.last().copied()
+    })
+}
+
+/// Enter a new scope for composition tracking
+pub fn enter_scope(scope_id: ScopeId) {
+    COMPOSITION_CTX.with(|ctx| {
+        ctx.borrow_mut().scope_stack.push(scope_id);
+    });
+}
+
+/// Exit the current scope
+pub fn exit_scope() {
+    COMPOSITION_CTX.with(|ctx| {
+        ctx.borrow_mut().scope_stack.pop();
+    });
+}
+
+/// Register an entity with the current scope
+fn register_entity_scope(entity: Entity, scope_id: ScopeId) {
+    COMPOSITION_CTX.with(|ctx| {
+        let mut ctx = ctx.borrow_mut();
+        ctx.entity_scopes.insert(entity, scope_id);
+        // Track all entities in this scope
+        ctx.scope_all_entities.entry(scope_id).or_default().push(entity);
+        // Only set scope root if not already set
+        ctx.scope_root_entities.entry(scope_id).or_insert(entity);
+    });
+}
+
+/// Get the root entity for a scope
+pub fn get_scope_root_entity(scope_id: ScopeId) -> Option<Entity> {
+    COMPOSITION_CTX.with(|ctx| {
+        ctx.borrow().scope_root_entities.get(&scope_id).copied()
+    })
+}
+
+/// Get all entities belonging to a scope
+pub fn get_scope_entities(scope_id: ScopeId) -> Vec<Entity> {
+    COMPOSITION_CTX.with(|ctx| {
+        ctx.borrow().scope_all_entities.get(&scope_id).cloned().unwrap_or_default()
+    })
+}
+
+/// Clear scope mapping for a specific scope (for recomposition)
+pub fn clear_scope_mapping(scope_id: ScopeId) {
+    COMPOSITION_CTX.with(|ctx| {
+        let mut ctx = ctx.borrow_mut();
+        ctx.scope_root_entities.remove(&scope_id);
+        if let Some(entities) = ctx.scope_all_entities.remove(&scope_id) {
+            for entity in entities {
+                ctx.entity_scopes.remove(&entity);
+            }
+        }
+    });
+}
+
+/// Get the parent entity for inserting scope content
+pub fn get_current_parent() -> Option<Entity> {
+    COMPOSITION_CTX.with(|ctx| {
+        ctx.borrow().parent_stack.last().copied()
+    })
+}
+
+/// Set parent for scope recomposition
+pub fn set_parent_for_scope(entity: Entity) {
+    COMPOSITION_CTX.with(|ctx| {
+        ctx.borrow_mut().parent_stack.push(entity);
+    });
+}
+
+/// Clear parent stack
+pub fn clear_parent_stack() {
+    COMPOSITION_CTX.with(|ctx| {
+        ctx.borrow_mut().parent_stack.clear();
     });
 }
 
@@ -95,6 +316,26 @@ fn spawn_child(bundle: impl Bundle) -> Entity {
         // SAFETY: We ensure commands is valid during composition
         let commands = unsafe { &mut *ctx.commands };
         let entity = commands.spawn(bundle).id();
+        
+        // Track which scope this entity belongs to
+        if let Some(&scope_id) = ctx.scope_stack.last() {
+            // Release borrow before calling register_entity_scope
+            drop(ctx);
+            register_entity_scope(entity, scope_id);
+            // Re-borrow to continue
+            let ctx = COMPOSITION_CTX.with(|c| c.borrow().parent_stack.last().copied());
+            if let Some(parent) = ctx {
+                let ctx_ref = COMPOSITION_CTX.with(|c| c.borrow().commands);
+                let commands = unsafe { &mut *ctx_ref };
+                commands.entity(parent).add_child(entity);
+            } else {
+                let ctx_ref = COMPOSITION_CTX.with(|c| c.borrow().commands);
+                let commands = unsafe { &mut *ctx_ref };
+                commands.entity(entity).insert(CompositionRoot);
+            }
+            return entity;
+        }
+        
         if let Some(parent) = ctx.parent_stack.last() {
             commands.entity(*parent).add_child(entity);
         } else {
@@ -123,6 +364,9 @@ fn with_commands<R>(f: impl FnOnce(&mut Commands) -> R) -> R {
 /// Reactive state that automatically triggers recomposition when modified.
 /// Similar to MutableState in Jetpack Compose.
 /// 
+/// State tracks which composition scope(s) read from it and only marks those
+/// scopes as dirty when the value changes, enabling granular recomposition.
+/// 
 /// # Example
 /// ```ignore
 /// let count = State::new(0);
@@ -136,40 +380,77 @@ fn with_commands<R>(f: impl FnOnce(&mut Commands) -> R) -> R {
 /// ```
 #[derive(Clone)]
 pub struct State<T: Clone + Send + Sync + 'static> {
-    inner: Arc<std::sync::RwLock<T>>,
+    inner: Arc<StateInner<T>>,
+}
+
+struct StateInner<T> {
+    value: RwLock<T>,
+    /// Scopes that have read from this state
+    subscribers: RwLock<HashSet<ScopeId>>,
 }
 
 impl<T: Clone + Send + Sync + 'static> State<T> {
     /// Create a new reactive state with an initial value
     pub fn new(value: T) -> Self {
         Self {
-            inner: Arc::new(std::sync::RwLock::new(value)),
+            inner: Arc::new(StateInner {
+                value: RwLock::new(value),
+                subscribers: RwLock::new(HashSet::new()),
+            }),
         }
     }
     
-    /// Get the current value
+    /// Get the current value and subscribe the current scope
     pub fn get(&self) -> T {
-        self.inner.read().unwrap().clone()
+        // Subscribe current scope to this state
+        if let Some(scope_id) = current_scope_id() {
+            let mut subscribers = self.inner.subscribers.write().unwrap();
+            subscribers.insert(scope_id);
+        }
+        self.inner.value.read().unwrap().clone()
     }
     
-    /// Set a new value and trigger recomposition
+    /// Get the value without subscribing (useful for event handlers)
+    pub fn get_untracked(&self) -> T {
+        self.inner.value.read().unwrap().clone()
+    }
+    
+    /// Set a new value and trigger recomposition of subscribed scopes
     pub fn set(&self, value: T) {
-        *self.inner.write().unwrap() = value;
-        invalidate();
+        *self.inner.value.write().unwrap() = value;
+        self.notify_subscribers();
     }
     
     /// Update the value using a function and trigger recomposition
     pub fn update(&self, f: impl FnOnce(&mut T)) {
         {
-            let mut guard = self.inner.write().unwrap();
+            let mut guard = self.inner.value.write().unwrap();
             f(&mut *guard);
         }
-        invalidate();
+        self.notify_subscribers();
     }
     
     /// Modify without triggering recomposition (for batched updates)
     pub fn set_silent(&self, value: T) {
-        *self.inner.write().unwrap() = value;
+        *self.inner.value.write().unwrap() = value;
+    }
+    
+    /// Notify all subscribed scopes that this state changed
+    fn notify_subscribers(&self) {
+        let subscribers = self.inner.subscribers.read().unwrap();
+        if subscribers.is_empty() {
+            // No subscribers, fall back to global invalidation
+            mark_scope_dirty(ScopeId(0));
+        } else {
+            for scope_id in subscribers.iter() {
+                mark_scope_dirty(*scope_id);
+            }
+        }
+    }
+    
+    /// Clear subscriber list (called during recomposition)
+    pub fn clear_subscribers(&self) {
+        self.inner.subscribers.write().unwrap().clear();
     }
 }
 
@@ -488,4 +769,97 @@ where
 /// Create a modifier chain starting with padding
 pub fn Modifier() -> Modifiers {
     Modifiers::new()
+}
+
+// ============================================================================
+// Scoped Composition
+// ============================================================================
+
+/// Marker component for scope root entities
+#[derive(Component, Clone, Copy)]
+pub struct ScopeMarker(pub ScopeId);
+
+/// Creates a recomposition boundary scope.
+/// 
+/// Content inside a Scope will only be rebuilt when state it reads changes,
+/// leaving sibling scopes untouched. This enables granular UI updates.
+/// 
+/// # Example
+/// ```ignore
+/// Column(Modifiers::new(), || {
+///     // This scope only rebuilds when `counter` changes
+///     Scope(|| {
+///         let count = counter.get();
+///         Text(format!("Count: {}", count), TextStyle::body());
+///     });
+///     
+///     // This scope is independent and won't rebuild when counter changes
+///     Scope(|| {
+///         Text("I never rebuild!", TextStyle::body());
+///     });
+/// });
+/// ```
+pub fn Scope<F>(content: F)
+where
+    F: Fn() + Send + Sync + 'static,
+{
+    let scope_id = ScopeId::new();
+    let parent_scope = current_scope_id();
+    
+    // Wrap content in Arc for storage
+    let content_fn: ScopedContentFn = Arc::new(content);
+    
+    // Register this scope with its content function
+    register_scope(scope_id, content_fn.clone(), parent_scope);
+    
+    // Create a container node for this scope
+    let scope_container = spawn_child((
+        Node {
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },
+        ScopeMarker(scope_id),
+    ));
+    
+    // Update scope registry with root entity
+    set_scope_root_entity(scope_id, scope_container);
+    
+    // Enter this scope and compose content
+    push_parent(scope_container);
+    enter_scope(scope_id);
+    
+    content_fn();
+    
+    exit_scope();
+    pop_parent();
+}
+
+/// Scoped state wrapper that automatically creates a scope boundary
+/// 
+/// This is a convenience that combines State with a Scope for common patterns
+/// where a piece of state should have its own recomposition boundary.
+/// 
+/// # Example  
+/// ```ignore
+/// // Creates both state and a scope that rebuilds when the state changes
+/// ScopedState(0, |count| {
+///     Text(format!("Count: {}", count.get()), TextStyle::body());
+///     Button("+", Modifiers::new(), {
+///         let count = count.clone();
+///         move || count.increment()
+///     });
+/// });
+/// ```
+pub fn ScopedState<T, F>(initial: T, content: F)
+where
+    T: Clone + Send + Sync + 'static,
+    F: Fn(State<T>) + Send + Sync + 'static,
+{
+    let state = State::new(initial);
+    let state_for_content = state.clone();
+    
+    Scope(move || {
+        content(state_for_content.clone());
+    });
 }

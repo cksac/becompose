@@ -93,6 +93,8 @@ pub mod prelude {
         BecomposeApp, WindowConfig, run_app, run_app_with_config, invalidate,
         // Reactive State
         State,
+        // Scope-based recomposition
+        ScopeId, Scope, ScopedState,
         // Composable functions (Jetpack Compose style)
         Text,
         Button,
