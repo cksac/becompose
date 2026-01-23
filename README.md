@@ -1,6 +1,6 @@
 # BECOMPOSE
 
-A declarative UI framework with Jetpack Composse's Composable like API using [bevy](https://bevy.org/) as render.
+A declarative UI framework with Jetpack Composse's Composable like API using [bevy](https://bevy.org/).
 
 # Example
 ```rust
