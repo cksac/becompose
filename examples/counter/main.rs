@@ -60,12 +60,12 @@ fn CounterApp(counter_a: State<i32>, counter_b: State<i32>) {
                     FixedSpacer(16.0);
 
                     // Counter A display - State is Copy, just pass it!
-                    CounterDisplay("Counter A", Color::srgb(0.8, 0.3, 0.3), counter_a);
+                    Counter("Counter A", Color::srgb(0.8, 0.3, 0.3), counter_a);
 
                     FixedSpacer(16.0);
 
                     // Counter B display - State is Copy, just pass it!
-                    CounterDisplay("Counter B", Color::srgb(0.3, 0.5, 0.8), counter_b);
+                    Counter("Counter B", Color::srgb(0.3, 0.5, 0.8), counter_b);
 
                     FixedSpacer(16.0);
 
@@ -92,7 +92,7 @@ fn CounterApp(counter_a: State<i32>, counter_b: State<i32>) {
 /// Reusable counter display component
 ///
 /// State<T> is Copy - no cloning needed!
-fn CounterDisplay(label: &'static str, accent_color: Color, counter: State<i32>) {
+fn Counter(label: &'static str, accent_color: Color, counter: State<i32>) {
     Column(
         Modifiers::new()
             .horizontal_alignment(HorizontalAlignment::Center)
