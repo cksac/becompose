@@ -11,10 +11,7 @@ use becompose::prelude::*;
 
 fn main() {
     // Run the app - no Bevy boilerplate needed!
-    run_app("BECOMPOSE - Hello World", || {
-        // Just call composable functions directly
-        App();
-    });
+    run_app("BECOMPOSE - Hello World", App);
 }
 
 /// The root App composable
